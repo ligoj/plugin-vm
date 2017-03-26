@@ -1,0 +1,9 @@
+**/.DS_Store
+.project
+.settings
+**/.project
+/target
+/*/target
+**/.classpath
+/*.exec
+**/org.eclipse.wst.validation.prefs
