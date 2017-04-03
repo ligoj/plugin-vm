@@ -113,7 +113,7 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	/**
-	 * Return the subscription identifier of MDA. Assumes there is only one
+	 * Return the subscription identifier of the given project. Assumes there is only one
 	 * subscription for a service.
 	 */
 	protected int getSubscription(final String project) {
