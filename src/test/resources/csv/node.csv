@@ -1,0 +1,4 @@
+id;name;refined.id;mode;uiClasses;tag;tagUiClasses
+service:vm;Virtualization;;LINK;fa fa-cloud;technical;fa fa-industry
+service:vm:test;test;service:vm;LINK;;;
+service:vm:test:test;-test;service:vm:test;LINK;;;
