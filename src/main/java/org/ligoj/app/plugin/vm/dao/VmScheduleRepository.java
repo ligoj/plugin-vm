@@ -18,7 +18,7 @@ public interface VmScheduleRepository extends RestRepository<VmSchedule, Integer
 	 * 
 	 * @param subscription
 	 *            the subscription linking the VM.
-	 * @return schedules attached to given subscription.
+	 * @return The schedules attached to given subscription.
 	 */
 	@Query("FROM VmSchedule WHERE subscription.id = ?1 ORDER BY operation")
 	List<VmSchedule> findBySubscription(int subscription);

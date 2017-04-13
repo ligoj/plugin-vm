@@ -223,6 +223,10 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	@Transactional
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public VmConfigurationVo getConfiguration(@PathParam("subscription") final int subscription) {
+		// Check the subscription is visible
+		subscriptionResource.checkVisibleSubscription(subscription);
+		
+		// Get the details
 		final VmConfigurationVo result = new VmConfigurationVo();
 		final List<VmScheduleVo> scedules = new ArrayList<>();
 		for (final VmSchedule schedule : vmScheduleRepository.findBySubscription(subscription)) {
