@@ -23,6 +23,7 @@ define({
 		"service:vm:schedule-next" : "Next execution",
 		"service:vm:busy" : "Busy",
 		"service:vm:deployed" : "Deployed",
+		"service:vm:history" : "History",
 		"vm-operation-success" : "Requesting operation {{[1]}} done on VM {{[0]}}",
 		"error" : {
 			"vm-cron" : "Invalid CRON expression",

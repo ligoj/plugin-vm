@@ -4,25 +4,24 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
 
+import org.ligoj.app.dao.SubscriptionRepository;
+import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.vm.model.VmOperation;
-import org.ligoj.app.resource.ServicePluginLocator;
-import org.ligoj.bootstrap.core.SpringUtils;
+import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.TriggerKey;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * VM Service job executing operations.
  */
-@Slf4j
 public class VmJob extends QuartzJobBean {
 
 	/**
-	 * {@link TriggerKey} formatter containing subscription and {@link VmOperation} :
-	 * <code>subscription-operation.name</code>
+	 * {@link TriggerKey} formatter containing subscription and
+	 * {@link VmOperation} : <code>subscription-operation.name</code>
 	 */
 	private static final String TRIGGER_ID_PARSER = "{0,number,integer}-{1}";
 
@@ -31,24 +30,19 @@ public class VmJob extends QuartzJobBean {
 		// Extract the job data to execute the operation
 		final VmOperation operation = VmOperation.valueOf(arg0.getMergedJobDataMap().getString("operation"));
 		final int subscription = arg0.getMergedJobDataMap().getInt("subscription");
-		log.error("Operation {} on subscription {} is rquested by the scheduler", operation, subscription);
+		final ApplicationContext context = (ApplicationContext) arg0.getMergedJobDataMap().get("context");
+		final Subscription entity = context.getBean(SubscriptionRepository.class).findOneExpected(subscription);
 
-		// Locate the tool implementing the VM service
-		final ServicePluginLocator servicePluginLocator = SpringUtils.getBean(ServicePluginLocator.class);
-		final VmServicePlugin resource = servicePluginLocator.getResourceExpected(arg0.getMergedJobDataMap().getString("node"),
-				VmServicePlugin.class);
+		// Set the user
+		context.getBean(SecurityHelper.class).setUserName(SecurityHelper.SYSTEM_USERNAME);
 
-		try {
-			// Execute the operation
-			resource.execute(subscription, operation);
-		} catch (final Exception e) {
-			// Something goes wrong for this VM, this log would be considered for reporting
-			log.error("Operation {} on subscription {} failed", operation, subscription, e);
-		}
+		// Execute the operation
+		context.getBean(VmResource.class).execute(entity, operation);
 	}
 
 	/**
-	 * Build and return the trigger identifier from the subscription and the operation.
+	 * Build and return the trigger identifier from the subscription and the
+	 * operation.
 	 * 
 	 * @param subscription
 	 *            The subscription identifier.
@@ -84,11 +78,10 @@ public class VmJob extends QuartzJobBean {
 
 	/**
 	 * Parses text from the beginning of the given string to produce an object
-	 * array.
-	 * The method may not use the entire text of the given string.
+	 * array. The method may not use the entire text of the given string.
 	 * <p>
-	 * See the {@link MessageFormat#parse(String, ParsePosition)} method for more information
-	 * on message parsing.
+	 * See the {@link MessageFormat#parse(String, ParsePosition)} method for
+	 * more information on message parsing.
 	 *
 	 * @param source
 	 *            A <code>String</code> whose beginning should be parsed.

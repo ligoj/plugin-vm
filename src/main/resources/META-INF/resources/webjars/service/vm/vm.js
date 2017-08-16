@@ -158,7 +158,7 @@ define(function () {
 		},
 
 		/**
-		 * Render VM operations.
+		 * Render VM operations and scheduler.
 		 */
 		renderFeatures: function (subscription) {
 			var result = '';
@@ -171,8 +171,17 @@ define(function () {
 				}
 			}
 
-			// Add scheduler
-			result += current.$super('renderServicelink')('calendar', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, 'service:vm:schedule');
+			// Schedule menu
+			result += '<div class="btn-group btn-link feature" data-container="body" data-toggle="tooltip" title="'
+				+ current.$messages['service:vm:schedule'] + '"><i class="fa fa-calendar" data-toggle="dropdown"></i>'
+				+ '<ul class="dropdown-menu dropdown-menu-right">';
+			 
+			// Add scheduler configuration
+			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, undefined, 'service:vm:schedule') + '</li>';
+
+			// Add history download
+			result += '<li>' + current.$super('renderServicelink')('file-text-o menu-icon', REST_PATH + 'service/vm/' + subscription.id + '/history-' + subscription.id + '.csv', undefined, 'service:vm:history', ' download') + '</li>';
+			result += '</ul></div>';
 
 			return result;
 		},

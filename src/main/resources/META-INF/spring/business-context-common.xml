@@ -17,11 +17,11 @@
 		<property name="jobClass" value="org.ligoj.app.plugin.vm.VmJob" />
 		<property name="jobDataMap">
 			<map>
-				<entry key="node" value="" />
 				<entry key="subscription" value="0" />
 				<entry key="operation" value="" />
 			</map>
 		</property>
+		<property name="applicationContextJobDataKey" value="context" />
 		<property name="name" value="vm-operation" />
 		<property name="group" value="vm-operation" />
 		<property name="durability" value="true" />
