@@ -180,7 +180,7 @@ define(function () {
 			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, undefined, 'service:vm:schedule') + '</li>';
 
 			// Add history download
-			result += '<li>' + current.$super('renderServicelink')('file-text-o menu-icon', REST_PATH + 'service/vm/' + subscription.id + '/history-' + subscription.id + '.csv', undefined, 'service:vm:history', ' download') + '</li>';
+			result += '<li>' + current.$super('renderServicelink')('history menu-icon', REST_PATH + 'service/vm/' + subscription.id + '/history-' + subscription.id + '.csv', undefined, 'service:vm:history', ' download') + '</li>';
 			result += '</ul></div>';
 
 			return result;
