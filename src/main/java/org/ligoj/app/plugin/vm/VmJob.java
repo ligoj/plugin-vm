@@ -4,9 +4,11 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.vm.model.VmOperation;
+import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -30,7 +32,8 @@ public class VmJob extends QuartzJobBean {
 		// Extract the job data to execute the operation
 		final VmOperation operation = VmOperation.valueOf(arg0.getMergedJobDataMap().getString("operation"));
 		final int subscription = arg0.getMergedJobDataMap().getInt("subscription");
-		final ApplicationContext context = (ApplicationContext) arg0.getMergedJobDataMap().get("context");
+		final ApplicationContext context = ObjectUtils.defaultIfNull((ApplicationContext) arg0.getMergedJobDataMap().get("context"),
+				SpringUtils.getApplicationContext());
 		final Subscription entity = context.getBean(SubscriptionRepository.class).findOneExpected(subscription);
 
 		// Set the user
