@@ -210,7 +210,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * call, but the effective execution is delayed.
 	 * 
 	 * @param subscription
-	 *            The {@link Subscription} associated to the VM.
+	 *            The {@link Subscription} identifier associated to the VM.
 	 * @param operation
 	 *            the operation to execute.
 	 */
@@ -282,11 +282,13 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Retur the full execution report for the related VM. No time limit.
+	 * Return the full execution report for the related VM. No time limit.
 	 * 
 	 * @param subscription
 	 *            The related subscription.
-	 * @return
+	 * @param file
+	 *            The requested file name.
+	 * @return The download stream.
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -335,7 +337,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * Update the configuration of subscription of a VM.
 	 * 
 	 * @param subscription
-	 *            The subscription to update.
+	 *            The subscription identifier to update.
 	 * @param schedule
 	 *            The schedule to save or update.
 	 */
