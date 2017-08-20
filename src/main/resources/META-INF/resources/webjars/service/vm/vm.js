@@ -4,7 +4,7 @@ define(function () {
 		/**
 		 * VM table
 		 */
-		vmTable: null,
+		table: null,
 
 		/**
 		 * Current configuration.
@@ -55,7 +55,7 @@ define(function () {
 		},
 
 		initializeTable: function () {
-			current.vmTable && current.vmTable.fnDestroy();
+			current.table && current.table.fnDestroy();
 			_('vm-schedules').find('tbody>tr').remove();
 			var operation;
 			var operations = [];
@@ -64,7 +64,7 @@ define(function () {
 					operations.push(operation);
 				}
 			}
-			current.vmTable = _('vm-schedules').dataTable({
+			current.table = _('vm-schedules').dataTable({
 				dom: '<"row"<"col-xs-6">>t',
 				pageLength: -1,
 				createdRow: function (nRow, operation) {
@@ -102,6 +102,11 @@ define(function () {
 				data: operations
 			});
 		},
+		
+		getNextExecution: function(cron) {
+			return cron ? moment(later.schedule(later.parse.cron(cron, true)).next(1))
+					.format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss') : '';
+		},
 
 		/**
 		 * Initialize VM configuration UI components
@@ -112,21 +117,40 @@ define(function () {
 			// Next schedule preview
 			_('cron').on('change', function () {
 				var cron = $(this).val();
-				_('cron-next').val(cron ? moment(later.schedule(later.parse.cron(cron, true)).next(1))
-					.format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss') : '');
+				if (cron.split(' ').length === 6) {
+					cron += ' *';
+				}
+				_('cron-next').val(current.getNextExecution(cron));
 			});
 			// VM operation schedule helper in popup
 			_('vm-schedules-popup').on('show.bs.modal', function (event) {
 				validationManager.reset($(this));
 				var $tr = $(event.relatedTarget).closest('tr');
 				var operation = $tr.attr('data-id');
+				var cron = $tr.find('.vm-schedules-cron').rawText();
 				_('vm-schedulesmodal-operation').attr('data-id', operation).text(current.$messages['service:vm:' + operation]);
-				require(['cron-gen/cron-gen'], function () {
-					// Reset the state of helper UI
-					_('CronGenMainDiv').remove();
-					_('cron-next').val('');
-					_('cron').val('').cronGen();
-				});
+				_('cron').val(cron || '').trigger('change');
+				require(['i18n!jqcron/nls/messages', 'jqcron/jqcron', 'css!jqcron/jqcron'], function (messages) {
+				    _('cron').jqCron({
+				        enabled_second: true,
+				        enabled_minute: true,
+				        multiple_dom: true,
+				        multiple_month: true,
+				        multiple_mins: true,
+				        multiple_secs: true,
+				        multiple_dow: true,
+				        multiple_time_hours: true,
+				        multiple_time_minutes: true,
+				        multiple_time_seconds: true,
+				        default_period: 'week',
+				        default_value: cron,
+				        no_reset_button: false,
+				        texts: {'default' : messages},
+				        lang: 'default'
+				    });
+				 });
+			}).on('shown.bs.modal', function (event) {
+				_('cron').trigger('focus');
 			}).on('submit', function (e) {
 				e.preventDefault();
 				var operation = _('vm-schedulesmodal-operation').attr('data-id');

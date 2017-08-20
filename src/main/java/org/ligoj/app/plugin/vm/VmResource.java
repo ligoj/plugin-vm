@@ -339,7 +339,10 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * @param subscription
 	 *            The subscription identifier to update.
 	 * @param schedule
-	 *            The schedule to save or update.
+	 *            The schedule to save or update. The CRON expression may be
+	 *            either in the 5 either in 6 parts. The optional 6th
+	 *            corresponds to the "seconds" and will be prepended to the
+	 *            expression to conform to Quartz format.
 	 */
 	@POST
 	@PUT
@@ -350,6 +353,10 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		// Check the subscription is visible
 		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
 
+		if (schedule.getCron().split(" ").length == 6) {
+			// Add the missing "seconds" part
+			schedule.setCron(schedule.getCron() + " *");
+		}
 		// Check expressions first
 		ValidationJsonException.assertTrue(CronExpression.isValidExpression(schedule.getCron()), "vm-cron", "cron");
 

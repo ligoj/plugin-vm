@@ -34,6 +34,7 @@ import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DateUtils;
 import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
+import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.quartz.JobDetail;
@@ -185,9 +186,9 @@ public class VmResourceTest extends AbstractServerTest {
 			((RAMJobStore) resources.getJobStore()).storeJob(jobDetail, true);
 
 			// Schedule all operations within the next 2 seconds
-			final String cron = "" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ? *";
+			final String cron = "" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?";
 			resource.saveOrUpdateSchedule(subscription, newSchedule(cron, VmOperation.OFF));
-			resource.saveOrUpdateSchedule(subscription, newSchedule(cron, VmOperation.ON));
+			resource.saveOrUpdateSchedule(subscription, newSchedule(cron + " *", VmOperation.ON));
 			Assert.assertEquals(2, vmScheduleRepository.findAll().size());
 
 			// Yield for the schedules
@@ -205,6 +206,11 @@ public class VmResourceTest extends AbstractServerTest {
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.RESET);
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SHUTDOWN);
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SUSPEND);
+	}
+
+	@Test(expected = ValidationJsonException.class)
+	public void saveOrUpdateScheduleInvalidCron() throws Exception {
+		resource.saveOrUpdateSchedule(subscription, newSchedule("ERROR_CRON", VmOperation.OFF));
 	}
 
 	private VmScheduleVo newSchedule(final String cron, final VmOperation operation) {
