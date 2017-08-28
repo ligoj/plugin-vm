@@ -1,2 +1,2 @@
 subscription.id!;cron;operation
-1;0 0 12 ? 2 TUE#4 *;OFF
+1;0 0 0 1 1 ? 2050;OFF

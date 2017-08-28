@@ -161,23 +161,22 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void saveOrUpdateSchedule() throws Exception {
+	public void createSchedule() throws Exception {
 		final ApplicationContext mockContext = Mockito.mock(ApplicationContext.class);
-		final SubscriptionRepository subscriptionRepository = Mockito.mock(SubscriptionRepository.class);
-		final Subscription entity = this.subscriptionRepository.findOneExpected(subscription);
-		Mockito.when(mockContext.getBean(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-		Mockito.when(subscriptionRepository.findOneExpected(subscription)).thenReturn(entity);
-		Mockito.when(mockContext.getBean(SecurityHelper.class)).thenReturn(Mockito.mock(SecurityHelper.class));
-
+		final VmScheduleRepository vmScheduleRepository = Mockito.mock(VmScheduleRepository.class);
 		final VmResource mockResource = Mockito.mock(VmResource.class);
+		final Subscription entity = this.subscriptionRepository.findOneExpected(subscription);
+		Mockito.when(mockContext.getBean(VmScheduleRepository.class)).thenReturn(vmScheduleRepository);
+		Mockito.when(mockContext.getBean(SecurityHelper.class)).thenReturn(Mockito.mock(SecurityHelper.class));
 		Mockito.when(mockContext.getBean(VmResource.class)).thenReturn(mockResource);
+
 		final StdScheduler scheduler = (StdScheduler) vmSchedulerFactoryBean.getScheduler();
 		final QuartzScheduler qscheduler = (QuartzScheduler) FieldUtils.getField(StdScheduler.class, "sched", true).get(scheduler);
 		final QuartzSchedulerResources resources = (QuartzSchedulerResources) FieldUtils.getField(QuartzScheduler.class, "resources", true)
 				.get(qscheduler);
 		final JobDetail jobDetail = scheduler.getJobDetail(scheduler.getJobKeys(GroupMatcher.anyJobGroup()).iterator().next());
 
-		// One call would fail
+		// "ON" call would fail
 		Mockito.doThrow(new RuntimeException()).when(mockResource).execute(entity, VmOperation.ON);
 
 		try {
@@ -185,11 +184,17 @@ public class VmResourceTest extends AbstractServerTest {
 			jobDetail.getJobDataMap().put("context", mockContext);
 			((RAMJobStore) resources.getJobStore()).storeJob(jobDetail, true);
 
+			Assert.assertEquals(1, this.vmScheduleRepository.findAll().size());
+
 			// Schedule all operations within the next 2 seconds
 			final String cron = "" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?";
-			resource.saveOrUpdateSchedule(subscription, newSchedule(cron, VmOperation.OFF));
-			resource.saveOrUpdateSchedule(subscription, newSchedule(cron + " *", VmOperation.ON));
-			Assert.assertEquals(2, vmScheduleRepository.findAll().size());
+			VmScheduleVo vo = new VmScheduleVo();
+			vo.setCron(cron);
+			vo.setOperation(VmOperation.OFF);
+			vo.setSubscription(subscription);
+			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.OFF)));
+			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron + " *", VmOperation.ON)));
+			Assert.assertEquals(3, this.vmScheduleRepository.findAll().size());
 
 			// Yield for the schedules
 			Thread.sleep(2500);
@@ -201,22 +206,28 @@ public class VmResourceTest extends AbstractServerTest {
 
 		// Check the executions
 		Mockito.verify(mockResource).execute(entity, VmOperation.OFF);
-		Mockito.verify(mockResource).execute(entity, VmOperation.ON);
+		Mockito.verify(mockResource).execute(entity, VmOperation.ON); // Has
+																		// failed
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.REBOOT);
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.RESET);
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SHUTDOWN);
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SUSPEND);
 	}
 
+	private void mockSchedule(final VmScheduleRepository vmScheduleRepository, final int id) {
+		Mockito.when(vmScheduleRepository.findOneExpected(id)).thenReturn(this.vmScheduleRepository.findOneExpected(id));
+	}
+
 	@Test(expected = ValidationJsonException.class)
-	public void saveOrUpdateScheduleInvalidCron() throws Exception {
-		resource.saveOrUpdateSchedule(subscription, newSchedule("ERROR_CRON", VmOperation.OFF));
+	public void createScheduleInvalidCron() throws Exception {
+		resource.createSchedule(newSchedule("ERROR_CRON", VmOperation.OFF));
 	}
 
 	private VmScheduleVo newSchedule(final String cron, final VmOperation operation) {
 		final VmScheduleVo result = new VmScheduleVo();
 		result.setCron(cron);
 		result.setOperation(operation);
+		result.setSubscription(subscription);
 		return result;
 	}
 
@@ -225,7 +236,8 @@ public class VmResourceTest extends AbstractServerTest {
 		final VmConfigurationVo configuration = resource.getConfiguration(subscription);
 		final List<VmScheduleVo> schedules = configuration.getSchedules();
 		Assert.assertEquals(1, schedules.size());
-		Assert.assertEquals("0 0 12 ? 2 TUE#4 *", schedules.get(0).getCron());
+		Assert.assertEquals("0 0 0 1 1 ? 2050", schedules.get(0).getCron());
+		Assert.assertNotNull(schedules.get(0).getId());
 		Assert.assertEquals(VmOperation.OFF, schedules.get(0).getOperation());
 	}
 
@@ -283,18 +295,18 @@ public class VmResourceTest extends AbstractServerTest {
 
 	@Test
 	public void unscheduleAll() throws Exception {
+		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
 		vmScheduleRepository.deleteAll();
 		Assert.assertEquals(0, vmScheduleRepository.findAll().size());
 		final Subscription entity = this.subscriptionRepository.findOneExpected(subscription);
 
 		final ApplicationContext mockContext = Mockito.mock(ApplicationContext.class);
-		final SubscriptionRepository subscriptionRepository = Mockito.mock(SubscriptionRepository.class);
-		Mockito.when(mockContext.getBean(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-		Mockito.when(subscriptionRepository.findOneExpected(subscription)).thenReturn(entity);
-		Mockito.when(mockContext.getBean(SecurityHelper.class)).thenReturn(Mockito.mock(SecurityHelper.class));
-
+		final VmScheduleRepository vmScheduleRepository = Mockito.mock(VmScheduleRepository.class);
 		final VmResource mockResource = Mockito.mock(VmResource.class);
+		Mockito.when(mockContext.getBean(VmScheduleRepository.class)).thenReturn(vmScheduleRepository);
+		Mockito.when(mockContext.getBean(SecurityHelper.class)).thenReturn(Mockito.mock(SecurityHelper.class));
 		Mockito.when(mockContext.getBean(VmResource.class)).thenReturn(mockResource);
+
 		final StdScheduler scheduler = (StdScheduler) vmSchedulerFactoryBean.getScheduler();
 		final QuartzScheduler qscheduler = (QuartzScheduler) FieldUtils.getField(StdScheduler.class, "sched", true).get(scheduler);
 		final QuartzSchedulerResources resources = (QuartzSchedulerResources) FieldUtils.getField(QuartzScheduler.class, "resources", true)
@@ -303,6 +315,7 @@ public class VmResourceTest extends AbstractServerTest {
 
 		// One call would fail
 		Mockito.doThrow(new RuntimeException()).when(mockResource).execute(entity, VmOperation.ON);
+		final Subscription otherEntity = new Subscription();
 
 		try {
 			// Mock the factory
@@ -311,19 +324,22 @@ public class VmResourceTest extends AbstractServerTest {
 
 			// Schedule all operations within the next 2 seconds
 			final String cron = "" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ? *";
-			resource.persistSchedule(entity, cron, VmOperation.ON);
-			resource.saveOrUpdateSchedule(subscription, newSchedule(cron, VmOperation.ON));
-			Assert.assertEquals(1, vmScheduleRepository.findAll().size());
+			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.ON)));
+			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.ON)));
+			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.ON)));
+			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.ON)));
+			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.ON)));
+			Assert.assertEquals(5, this.vmScheduleRepository.findAll().size());
 
 			// Persist another VM schedule for another subscription within the
-			// next
-			// 2 seconds
-			final Subscription otherEntity = new Subscription();
+			// next 2 seconds
 			otherEntity.setProject(entity.getProject());
 			otherEntity.setNode(entity.getNode());
 			this.subscriptionRepository.saveAndFlush(otherEntity);
-			resource.persistSchedule(otherEntity, "0 0 0 1 1 ? 2050", VmOperation.ON);
-			Assert.assertEquals(2, vmScheduleRepository.findAll().size());
+			final VmScheduleVo schedule2 = newSchedule("0 0 0 1 1 ? 2050", VmOperation.ON);
+			schedule2.setSubscription(otherEntity.getId());
+			resource.createSchedule(schedule2);
+			Assert.assertEquals(6, this.vmScheduleRepository.findAll().size());
 
 			// Yield for the schedules
 			Thread.sleep(2500);
@@ -332,7 +348,7 @@ public class VmResourceTest extends AbstractServerTest {
 			jobDetail.getJobDataMap().put("context", applicationContext);
 			((RAMJobStore) resources.getJobStore()).storeJob(jobDetail, true);
 		}
-		Mockito.verify(mockResource).execute(entity, VmOperation.ON);
+		Mockito.inOrder(mockResource).verify(mockResource, Mockito.calls(5)).execute(entity, VmOperation.ON);
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.OFF);
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.REBOOT);
 		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.RESET);
@@ -341,28 +357,27 @@ public class VmResourceTest extends AbstractServerTest {
 
 		// Remove all triggers of the subscription
 		resource.unscheduleAll(subscription);
-		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
+		Assert.assertEquals(1, this.vmScheduleRepository.findAll().size());
+		resource.unscheduleAll(otherEntity.getId());
+		Assert.assertEquals(0, this.vmScheduleRepository.findAll().size());
 	}
 
 	@Test
 	public void deleteSchedule() throws Exception {
-
 		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
 		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
 
-		// Persist another VM schedule for another subscription within the next
-		// 3 seconds
+		// Persist another VM schedule for another subscription
 		final Subscription otherEntity = new Subscription();
 		otherEntity.setProject(entity.getProject());
 		otherEntity.setNode(entity.getNode());
 		subscriptionRepository.saveAndFlush(otherEntity);
-		resource.persistSchedule(otherEntity, "0 0 0 1 1 ? 2050", VmOperation.OFF);
+		final VmScheduleVo schedule2 = newSchedule("0 0 0 1 1 ? 2050", VmOperation.OFF);
+		schedule2.setSubscription(otherEntity.getId());
+		final int schedule = resource.createSchedule(schedule2);
 		Assert.assertEquals(2, vmScheduleRepository.findAll().size());
 
-		// Load the scheduler from the database
-		resource.afterPropertiesSet();
-
-		resource.deleteSchedule(subscription, VmOperation.OFF);
+		resource.deleteSchedule(schedule);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.ON);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.OFF);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.REBOOT);
@@ -373,24 +388,23 @@ public class VmResourceTest extends AbstractServerTest {
 
 		// Remove all triggers of the subscription
 		resource.unscheduleAll(subscription);
+		Assert.assertEquals(0, vmScheduleRepository.findAll().size());
 	}
 
 	@Test
-	public void deleteScheduleNotScheduled() throws Exception {
-		final Calendar calendar = DateUtils.newCalendar();
-		vmScheduleRepository.deleteAll();
+	public void afterPropertiesSet() throws Exception {
+		resource.unscheduleAll(subscription);
+		Assert.assertEquals(0, vmScheduleRepository.findAll().size());
 
-		// Persist a VM schedule within the next 50 seconds
-		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
-		resource.persistSchedule(entity, "" + ((calendar.get(Calendar.SECOND) + 50) % 60) + " * * * * ? *", VmOperation.ON);
+		// Persist again the schedule without involving Quartz
+		persistEntities("csv", new Class[] { VmSchedule.class }, StandardCharsets.UTF_8.name());
+		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
+		resource.afterPropertiesSet();
 		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
 
-		// Load the scheduler from the database
-		resource.afterPropertiesSet();
-		resource.deleteSchedule(subscription, VmOperation.OFF);
+		// Remove all triggers of the subscription
 		resource.unscheduleAll(subscription);
-		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.ON);
-		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.OFF);
+		Assert.assertEquals(0, vmScheduleRepository.findAll().size());
 	}
 
 	@Test
