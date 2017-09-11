@@ -2,7 +2,8 @@ package org.ligoj.app.plugin.vm;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.ligoj.app.plugin.vm.model.VmOperation;
+import org.ligoj.app.model.Subscription;
+import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.quartz.TriggerKey;
 
 /**
@@ -12,14 +13,12 @@ public class VmJobTest {
 
 	@Test
 	public void getSubscription() {
-		Assert.assertEquals(10, VmJob.getSubscription(new TriggerKey("10-any")));
-		Assert.assertEquals(1000, VmJob.getSubscription(new TriggerKey("1000-any")));
+		Assert.assertEquals(999, VmJob.getSubscription(new TriggerKey("10-999")));
 	}
 
 	@Test
-	public void getOperation() {
-		Assert.assertEquals(VmOperation.OFF, VmJob.getOperation(new TriggerKey("10-OFF")));
-		Assert.assertEquals(VmOperation.OFF, VmJob.getOperation(new TriggerKey("1000-OFF")));
+	public void getSchedule() {
+		Assert.assertEquals(10, VmJob.getSchedule(new TriggerKey("10-999")));
 	}
 
 	@Test
@@ -29,6 +28,11 @@ public class VmJobTest {
 
 	@Test
 	public void format() {
-		Assert.assertEquals("12345-OFF", VmJob.format(12345, VmOperation.OFF));
+		final VmSchedule vmSchedule = new VmSchedule();
+		vmSchedule.setId(6789);
+		final Subscription subscription = new Subscription();
+		subscription.setId(12345);
+		vmSchedule.setSubscription(subscription);
+		Assert.assertEquals("6789-12345", VmJob.format(vmSchedule));
 	}
 }

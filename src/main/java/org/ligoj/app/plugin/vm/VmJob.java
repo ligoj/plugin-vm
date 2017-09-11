@@ -5,9 +5,8 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.ligoj.app.dao.SubscriptionRepository;
-import org.ligoj.app.model.Subscription;
-import org.ligoj.app.plugin.vm.model.VmOperation;
+import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
+import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.quartz.JobExecutionContext;
@@ -16,45 +15,58 @@ import org.quartz.TriggerKey;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * VM Service job executing operations.
  */
+@Slf4j
 public class VmJob extends QuartzJobBean {
 
 	/**
-	 * {@link TriggerKey} formatter containing subscription and
-	 * {@link VmOperation} : <code>subscription-operation.name</code>
+	 * {@link TriggerKey} formatter containing schedule identifier and
+	 * subscription identifier. Format is "SCHEDULE-SUBSCRIPTION".
 	 */
-	private static final String TRIGGER_ID_PARSER = "{0,number,integer}-{1}";
+	private static final String TRIGGER_ID_PARSER = "{0,number,integer}-{1,number,integer}";
 
 	@Override
 	protected void executeInternal(final JobExecutionContext arg0) throws JobExecutionException {
 		// Extract the job data to execute the operation
-		final VmOperation operation = VmOperation.valueOf(arg0.getMergedJobDataMap().getString("operation"));
-		final int subscription = arg0.getMergedJobDataMap().getInt("subscription");
+		final int schedule = arg0.getMergedJobDataMap().getInt("schedule");
 		final ApplicationContext context = ObjectUtils.defaultIfNull((ApplicationContext) arg0.getMergedJobDataMap().get("context"),
 				SpringUtils.getApplicationContext());
-		final Subscription entity = context.getBean(SubscriptionRepository.class).findOneExpected(subscription);
+		final VmSchedule entity = context.getBean(VmScheduleRepository.class).findOneExpected(schedule);
+		log.info("Executing {} for schedule {}, subscription {}", entity.getOperation(), entity.getId(), entity.getSubscription().getId());
 
 		// Set the user
 		context.getBean(SecurityHelper.class).setUserName(SecurityHelper.SYSTEM_USERNAME);
 
 		// Execute the operation
-		context.getBean(VmResource.class).execute(entity, operation);
+		context.getBean(VmResource.class).execute(entity.getSubscription(), entity.getOperation());
+		log.info("Succeed {} for schedule {}, subscription {}", entity.getOperation(), entity.getId(), entity.getSubscription().getId());
 	}
 
 	/**
-	 * Build and return the trigger identifier from the subscription and the
-	 * operation.
+	 * Build and return the trigger identifier from the schedule and the
+	 * subscription.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier.
-	 * @param operation
-	 *            The operation to execute.
+	 * @param schedule
+	 *            The schedule entity.
 	 * @return the {@link String} identifier for the trigger.
 	 */
-	protected static String format(final int subscription, final VmOperation operation) {
-		return subscription + "-" + operation.name();
+	protected static String format(final VmSchedule schedule) {
+		return schedule.getId() + "-" + schedule.getSubscription().getId();
+	}
+
+	/**
+	 * Extract the schedule identifier from the trigger
+	 * 
+	 * @param key
+	 *            the {@link TriggerKey}
+	 * @return the subscription identifier.
+	 */
+	protected static int getSchedule(final TriggerKey key) {
+		return ((Long) parse(key.getName())[0]).intValue();
 	}
 
 	/**
@@ -65,18 +77,7 @@ public class VmJob extends QuartzJobBean {
 	 * @return the subscription identifier.
 	 */
 	protected static int getSubscription(final TriggerKey key) {
-		return ((Long) parse(key.getName())[0]).intValue();
-	}
-
-	/**
-	 * Extract the operation from the trigger
-	 * 
-	 * @param key
-	 *            the {@link TriggerKey}
-	 * @return the operation.
-	 */
-	protected static VmOperation getOperation(final TriggerKey key) {
-		return VmOperation.valueOf(parse(key.getName())[1].toString());
+		return ((Long) parse(key.getName())[1]).intValue();
 	}
 
 	/**

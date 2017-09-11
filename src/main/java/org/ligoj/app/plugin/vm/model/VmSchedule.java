@@ -3,7 +3,6 @@ package org.ligoj.app.plugin.vm.model;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.model.Subscription;
@@ -18,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "LIGOJ_VM_SCHEDULE", uniqueConstraints = @UniqueConstraint(columnNames = { "operation", "subscription" }))
+@Table(name = "LIGOJ_VM_SCHEDULE")
 public class VmSchedule extends AbstractPersistable<Integer> {
 
 	/**

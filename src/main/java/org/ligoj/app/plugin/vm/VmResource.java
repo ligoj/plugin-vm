@@ -128,13 +128,13 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * Remove a schedule of this subscription for a specific operation from the
 	 * current scheduler, then from the data base.
 	 */
-	private void unschedule(final int subscription, final VmOperation operation) throws SchedulerException {
+	private void unschedule(final int schedule) throws SchedulerException {
 		// Remove current schedules from the memory
-		unscheduleAll(triggerKey -> subscription == VmJob.getSubscription(triggerKey) && operation == VmJob.getOperation(triggerKey));
+		unscheduleAll(triggerKey -> schedule == VmJob.getSchedule(triggerKey));
 
 		// Remove all schedules associated to this subscription from persisted
 		// entities
-		vmScheduleRepository.deleteBySubscriptionAndOperation(subscription, operation);
+		vmScheduleRepository.delete(schedule);
 	}
 
 	/**
@@ -153,44 +153,22 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Schedule a VM operation : persisted and scheduled in memory
+	 * Persist the trigger in the Quartz scheduler.
 	 */
-	private void schedule(final Subscription subscription, final String cron, final VmOperation operation) throws SchedulerException {
-		// CRON expression has been provided, schedule it
-
-		// First in the data base : reflect the "delete" cleaning order
-		persistSchedule(subscription, cron, operation);
-
-		// Update quartz scheduler
-		persistTrigger(subscription, cron, operation);
-	}
-
-	/**
-	 * Persist the trigger in the scheduler.
-	 */
-	private void persistTrigger(final Subscription subscription, final String cron, final VmOperation operation) throws SchedulerException {
+	private VmSchedule persistTrigger(final VmSchedule schedule) throws SchedulerException {
 		// The trigger for the common VM Job will the following convention :
-		// subscriptionId-operationName
-		final String id = VmJob.format(subscription.getId(), operation);
+		// schedule.id-subscription.id
+		final String id = VmJob.format(schedule);
 		final JobDetailImpl object = (JobDetailImpl) vmJobDetailFactoryBean.getObject();
 		object.getJobDataMap().put("vmServicePlugin", this);
 		final Trigger trigger = TriggerBuilder.newTrigger().withIdentity(id, SCHEDULE_TRIGGER_GROUP)
-				.withSchedule(CronScheduleBuilder.cronSchedule(cron)).forJob(object).usingJobData("subscription", subscription.getId())
-				.usingJobData("operation", operation.name()).build();
+				.withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCron())).forJob(object)
+				.usingJobData("subscription", schedule.getSubscription().getId()).usingJobData("operation", schedule.getOperation().name())
+				.usingJobData("schedule", schedule.getId()).build();
 
 		// Add this trigger
 		vmSchedulerFactoryBean.getObject().scheduleJob(trigger);
-	}
-
-	/**
-	 * Persist a schedule in data base.
-	 */
-	protected void persistSchedule(final Subscription subscription, final String cron, final VmOperation operation) {
-		final VmSchedule entity = new VmSchedule();
-		entity.setSubscription(subscription);
-		entity.setOperation(operation);
-		entity.setCron(cron);
-		vmScheduleRepository.saveAndFlush(entity);
+		return schedule;
 	}
 
 	@Override
@@ -200,7 +178,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		final List<VmSchedule> schedules = vmScheduleRepository.findAll();
 		log.info("Schedules {} jobs from database", schedules.size());
 		for (final VmSchedule schedule : schedules) {
-			persistTrigger(schedule.getSubscription(), schedule.getCron(), schedule.getOperation());
+			persistTrigger(schedule);
 		}
 
 	}
@@ -275,6 +253,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 			final VmScheduleVo vo = new VmScheduleVo();
 			vo.setCron(schedule.getCron());
 			vo.setOperation(schedule.getOperation());
+			vo.setId(schedule.getId());
 			scedules.add(vo);
 		}
 		result.setSchedules(scedules);
@@ -334,7 +313,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Update the configuration of subscription of a VM.
+	 * Create a new schedule.
 	 * 
 	 * @param subscription
 	 *            The subscription identifier to update.
@@ -345,13 +324,37 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 *            expression to conform to Quartz format.
 	 */
 	@POST
-	@PUT
-	@Path("{subscription:\\d+}")
 	@Transactional
-	public void saveOrUpdateSchedule(@PathParam("subscription") final int subscription, final VmScheduleVo schedule)
-			throws SchedulerException {
+	public int createSchedule(final VmScheduleVo schedule) throws SchedulerException {
+		return persistTrigger(checkAndSaveSchedule(schedule, new VmSchedule())).getId();
+	}
+
+	/**
+	 * Update an existing schedule.
+	 * 
+	 * @param subscription
+	 *            The subscription identifier to update.
+	 * @param schedule
+	 *            The schedule to save or update. The CRON expression may be
+	 *            either in the 5 either in 6 parts. The optional 6th
+	 *            corresponds to the "seconds" and will be prepended to the
+	 *            expression to conform to Quartz format.
+	 */
+	@PUT
+	@Transactional
+	public void updateSchedule(final VmScheduleVo schedule) throws SchedulerException {
+		// Persist the new schedules for each provided CRON
+		VmSchedule entity = checkAndSaveSchedule(schedule, vmScheduleRepository.findOneExpected(schedule.getId()));
+
+		// Clear the schedule
+		unschedule(schedule.getId());
+
+		persistTrigger(entity);
+	}
+
+	private VmSchedule checkAndSaveSchedule(final VmScheduleVo schedule, final VmSchedule entity) {
 		// Check the subscription is visible
-		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
+		final Subscription subscription = subscriptionResource.checkVisibleSubscription(schedule.getSubscription());
 
 		if (schedule.getCron().split(" ").length == 6) {
 			// Add the missing "seconds" part
@@ -360,30 +363,30 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		// Check expressions first
 		ValidationJsonException.assertTrue(CronExpression.isValidExpression(schedule.getCron()), "vm-cron", "cron");
 
-		// Clear the schedule
-		unschedule(subscription, schedule.getOperation());
+		entity.setSubscription(subscription);
+		entity.setOperation(schedule.getOperation());
+		entity.setCron(schedule.getCron());
 
 		// Persist the new schedules for each provided CRON
-		this.schedule(entity, schedule.getCron(), schedule.getOperation());
+		vmScheduleRepository.saveAndFlush(entity);
+		return entity;
 	}
 
 	/**
-	 * Delete the schedule operation from the VM associated to the subscription.
+	 * Delete the schedule entity. Related subscription's visibility is checked.
 	 * 
-	 * @param subscription
-	 *            The subscription to update.
-	 * @param operation
-	 *            The operation to remove from the VM schedules.
+	 * @param schedule
+	 *            The schedule to delete.
 	 */
 	@DELETE
-	@Path("{subscription:\\d+}/{operation}")
+	@Path("{id:\\d+}")
 	@Transactional
-	public void deleteSchedule(@PathParam("subscription") final int subscription, @PathParam("operation") final VmOperation operation)
-			throws SchedulerException {
+	public void deleteSchedule(@PathParam("id") final int schedule) throws SchedulerException {
 		// Check the subscription is visible
-		subscriptionResource.checkVisibleSubscription(subscription);
+		final VmSchedule entity = vmScheduleRepository.findOneExpected(schedule);
+		subscriptionResource.checkVisibleSubscription(entity.getSubscription().getId());
 
 		// Clear the specific schedule
-		unschedule(subscription, operation);
+		unschedule(schedule);
 	}
 }

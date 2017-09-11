@@ -14,6 +14,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class VmScheduleVo {
+	
+	/**
+	 * Optional identifier.
+	 */
+	private Integer id;
 
 	/**
 	 * CRON expression for this schedule
@@ -27,5 +32,11 @@ public class VmScheduleVo {
 	 */
 	@NotNull
 	private VmOperation operation;
-	
+
+	/**
+	 * The related subscription.
+	 */
+	@NotNull
+	private Integer subscription;
+
 }

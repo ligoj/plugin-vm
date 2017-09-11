@@ -6,9 +6,6 @@
 		width: 100px;
 	}
 }
-#vm-schedules>tbody>tr:not(.scheduled)>td:last-child>.delete {
-	visibility: hidden;
-}
 th.next-execution {
 	width: 150px;
 }
