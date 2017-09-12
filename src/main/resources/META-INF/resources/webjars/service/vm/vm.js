@@ -116,7 +116,7 @@ define(function () {
 			current.initializeTable();
 
 			var operations = [];
-			for (operation in current.vmOperations) {
+			for (var operation in current.vmOperations) {
 				if (current.vmOperations.hasOwnProperty(operation)) {
 					operations.push({
 						id: operation,
@@ -160,7 +160,7 @@ define(function () {
 				} : null);
 				_('cron').val(schedule.cron || '').trigger('change');
 				require(['i18n!jqcron/nls/messages', 'jqcron/jqcron', 'css!jqcron/jqcron'], function (messages) {
-				    _('cron').jqCron({
+					_('cron').jqCron({
 				        enabled_second: true,
 				        enabled_minute: true,
 				        multiple_dom: true,
