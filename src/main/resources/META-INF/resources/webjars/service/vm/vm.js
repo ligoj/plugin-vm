@@ -161,23 +161,23 @@ define(function () {
 				_('cron').val(schedule.cron || '').trigger('change');
 				require(['i18n!jqcron/nls/messages', 'jqcron/jqcron', 'css!jqcron/jqcron'], function (messages) {
 					_('cron').jqCron({
-				        enabled_second: true,
-				        enabled_minute: true,
-				        multiple_dom: true,
-				        multiple_month: true,
-				        multiple_mins: true,
-				        multiple_secs: true,
-				        multiple_dow: true,
-				        multiple_time_hours: true,
-				        multiple_time_minutes: true,
-				        multiple_time_seconds: true,
-				        default_period: 'week',
-				        default_value: cron,
-				        no_reset_button: false,
-				        texts: {'default' : messages},
-				        lang: 'default'
-				    });
-				 });
+						enabled_second: true,
+						enabled_minute: true,
+						multiple_dom: true,
+						multiple_month: true,
+						multiple_mins: true,
+						multiple_secs: true,
+						multiple_dow: true,
+						multiple_time_hours: true,
+						multiple_time_minutes: true,
+						multiple_time_seconds: true,
+						default_period: 'week',
+						default_value: cron,
+						no_reset_button: false,
+						texts: {'default' : messages},
+						lang: 'default'
+					});
+				});
 			}).on('shown.bs.modal', function (event) {
 				_('cron').trigger('focus');
 			}).on('submit', function (e) {
@@ -222,10 +222,10 @@ define(function () {
 				+ '<ul class="dropdown-menu dropdown-menu-right">';
 			 
 			// Add scheduler configuration
-			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, undefined, 'service:vm:schedule') + '</li>';
+			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, null, 'service:vm:schedule') + '</li>';
 
 			// Add history download
-			result += '<li>' + current.$super('renderServicelink')('history menu-icon', REST_PATH + 'service/vm/' + subscription.id + '/history-' + subscription.id + '.csv', undefined, 'service:vm:history', ' download') + '</li>';
+			result += '<li>' + current.$super('renderServicelink')('history menu-icon', REST_PATH + 'service/vm/' + subscription.id + '/history-' + subscription.id + '.csv', null, 'service:vm:history', ' download') + '</li>';
 			result += '</ul></div>';
 
 			return result;
@@ -246,7 +246,7 @@ define(function () {
 			var deployed = status === 'powered_off' && subscription.data.vm.deployed;
 			return '<i data-toggle="tooltip" data-html="true" title="' + (current.$messages['service:vm:' + status] || status) +
 				(busy ? ' (' + current.$messages['service:vm:busy'] + ')' : '') +
-				(deployed ? '<br>[' + current.$messages['service:vm:deployed'] + ']' : '') + '"  class="' +
+				(deployed ? '<br>[' + current.$messages['service:vm:deployed'] + ']' : '') + '" class="' +
 				(current.vmStatus[status] || 'fa fa-question-circle-o text-muted') +
 				(busy ? ' faa-flash animated' : '') + (deployed ? ' deployed' : '') + '"></i>';
 		},
