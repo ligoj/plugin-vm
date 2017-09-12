@@ -161,7 +161,7 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void createSchedule() throws Exception {
+	public void createAndUpdateSchedule() throws Exception {
 		final ApplicationContext mockContext = Mockito.mock(ApplicationContext.class);
 		final VmScheduleRepository vmScheduleRepository = Mockito.mock(VmScheduleRepository.class);
 		final VmResource mockResource = Mockito.mock(VmResource.class);
@@ -188,34 +188,42 @@ public class VmResourceTest extends AbstractServerTest {
 
 			// Schedule all operations within the next 2 seconds
 			final String cron = "" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?";
-			VmScheduleVo vo = new VmScheduleVo();
-			vo.setCron(cron);
-			vo.setOperation(VmOperation.OFF);
-			vo.setSubscription(subscription);
-			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.OFF)));
+			final int id = mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.OFF)));
 			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron + " *", VmOperation.ON)));
 			Assert.assertEquals(3, this.vmScheduleRepository.findAll().size());
 
 			// Yield for the schedules
 			Thread.sleep(2500);
+
+			// Check the executions
+			Mockito.verify(mockResource).execute(entity, VmOperation.OFF);
+			Mockito.verify(mockResource).execute(entity, VmOperation.ON); // Failed
+			Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.REBOOT);
+			Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.RESET);
+			Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SHUTDOWN);
+			Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SUSPEND);
+
+			// Update the CRON and the operation
+			final VmScheduleVo vo = newSchedule("" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?",
+					VmOperation.SHUTDOWN);
+			vo.setId(id);
+			vo.setSubscription(subscription);
+			resource.updateSchedule(vo);
+			Assert.assertEquals(3, this.vmScheduleRepository.findAll().size());
+
+			// Yield for the schedules
+			Thread.sleep(2500);
+			Mockito.verify(mockResource).execute(entity, VmOperation.SHUTDOWN);
 		} finally {
 			// Restore the factory's context
 			jobDetail.getJobDataMap().put("context", applicationContext);
 			((RAMJobStore) resources.getJobStore()).storeJob(jobDetail, true);
 		}
-
-		// Check the executions
-		Mockito.verify(mockResource).execute(entity, VmOperation.OFF);
-		Mockito.verify(mockResource).execute(entity, VmOperation.ON); // Has
-																		// failed
-		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.REBOOT);
-		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.RESET);
-		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SHUTDOWN);
-		Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SUSPEND);
 	}
 
-	private void mockSchedule(final VmScheduleRepository vmScheduleRepository, final int id) {
+	private int mockSchedule(final VmScheduleRepository vmScheduleRepository, final int id) {
 		Mockito.when(vmScheduleRepository.findOneExpected(id)).thenReturn(this.vmScheduleRepository.findOneExpected(id));
+		return id;
 	}
 
 	@Test(expected = ValidationJsonException.class)
@@ -239,6 +247,9 @@ public class VmResourceTest extends AbstractServerTest {
 		Assert.assertEquals("0 0 0 1 1 ? 2050", schedules.get(0).getCron());
 		Assert.assertNotNull(schedules.get(0).getId());
 		Assert.assertEquals(VmOperation.OFF, schedules.get(0).getOperation());
+
+		// Coverage only
+		Assert.assertEquals(VmOperation.OFF, VmOperation.values()[VmOperation.valueOf(VmOperation.OFF.name()).ordinal()]);
 	}
 
 	@Test

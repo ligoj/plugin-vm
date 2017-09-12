@@ -129,12 +129,16 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * current scheduler, then from the data base.
 	 */
 	private void unschedule(final int schedule) throws SchedulerException {
-		// Remove current schedules from the memory
-		unscheduleAll(triggerKey -> schedule == VmJob.getSchedule(triggerKey));
+		unscheduleQuartz(schedule);
 
 		// Remove all schedules associated to this subscription from persisted
 		// entities
 		vmScheduleRepository.delete(schedule);
+	}
+
+	private void unscheduleQuartz(final int schedule) throws SchedulerException {
+		// Remove current schedules from the memory
+		unscheduleAll(triggerKey -> schedule == VmJob.getSchedule(triggerKey));
 	}
 
 	/**
@@ -346,10 +350,10 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		// Persist the new schedules for each provided CRON
 		VmSchedule entity = checkAndSaveSchedule(schedule, vmScheduleRepository.findOneExpected(schedule.getId()));
 
-		// Clear the schedule
-		unschedule(schedule.getId());
+		// Remove current schedules from the Quartz memory
+		unscheduleQuartz(schedule.getId());
 
-		persistTrigger(entity);
+		persistTrigger(checkAndSaveSchedule(schedule, entity));
 	}
 
 	private VmSchedule checkAndSaveSchedule(final VmScheduleVo schedule, final VmSchedule entity) {
