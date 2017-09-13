@@ -367,6 +367,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		// Check expressions first
 		ValidationJsonException.assertTrue(CronExpression.isValidExpression(schedule.getCron()), "vm-cron", "cron");
 
+		// Every second is not accepted
+		ValidationJsonException.assertTrue(!schedule.getCron().startsWith("* "), "vm-cron-second", "cron");
+
 		entity.setSubscription(subscription);
 		entity.setOperation(schedule.getOperation());
 		entity.setCron(schedule.getCron());

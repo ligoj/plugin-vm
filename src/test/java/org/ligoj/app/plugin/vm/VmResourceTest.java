@@ -231,6 +231,11 @@ public class VmResourceTest extends AbstractServerTest {
 		resource.createSchedule(newSchedule("ERROR_CRON", VmOperation.OFF));
 	}
 
+	@Test(expected = ValidationJsonException.class)
+	public void createScheduleInvalidCronEverySecond() throws Exception {
+		resource.createSchedule(newSchedule("* * * ? * *", VmOperation.OFF));
+	}
+
 	private VmScheduleVo newSchedule(final String cron, final VmOperation operation) {
 		final VmScheduleVo result = new VmScheduleVo();
 		result.setCron(cron);

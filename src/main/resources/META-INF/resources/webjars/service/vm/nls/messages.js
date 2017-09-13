@@ -28,6 +28,7 @@ define({
 		"vm-operation-success" : "Requesting operation {{[1]}} done on VM {{[0]}}",
 		"error" : {
 			"vm-cron" : "Invalid CRON expression",
+			"vm-cron-second" : "Valid CRON expression, but cannot be every second",
 			"vcloud-login" : "Authentication failed"
 		}
 	},

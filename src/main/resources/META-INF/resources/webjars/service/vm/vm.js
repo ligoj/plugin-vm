@@ -172,7 +172,7 @@ define(function () {
 						multiple_time_minutes: true,
 						multiple_time_seconds: true,
 						default_period: 'week',
-						default_value: cron,
+						default_value: schedule.cron,
 						no_reset_button: false,
 						texts: {'default' : messages},
 						lang: 'default'
