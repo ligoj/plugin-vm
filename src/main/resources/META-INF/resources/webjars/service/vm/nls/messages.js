@@ -24,6 +24,7 @@ define({
 		"service:vm:busy" : "Busy",
 		"service:vm:deployed" : "Deployed",
 		"service:vm:history" : "History",
+		"service:vm:nb-schedules" : "Number of schedules for this VM",
 		"vm-operation-success" : "Requesting operation {{[1]}} done on VM {{[0]}}",
 		"error" : {
 			"vm-cron" : "Invalid CRON expression",

@@ -21,4 +21,14 @@ public interface VmScheduleRepository extends RestRepository<VmSchedule, Integer
 	@Query("FROM VmSchedule WHERE subscription.id = ?1 ORDER BY operation")
 	List<VmSchedule> findBySubscription(int subscription);
 
+	/**
+	 * Return the amount of registered schedules for the given subscription.
+	 * 
+	 * @param subscription
+	 *            the subscription linking the VM.
+	 * @return The amount of registered schedules for the given subscription.
+	 */
+	@Query("SELECT COUNT(id) FROM VmSchedule WHERE subscription.id = ?1")
+	int countBySubscription(int subscription);
+
 }

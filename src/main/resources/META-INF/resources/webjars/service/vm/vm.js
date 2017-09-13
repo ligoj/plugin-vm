@@ -219,10 +219,12 @@ define(function () {
 			// Schedule menu
 			result += '<div class="btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="'
 				+ current.$messages['service:vm:schedule'] + '"><i class="fa fa-calendar dropdown-toggle" data-toggle="dropdown"></i>'
+				+ '<span class="service-vm-schedule-check"><i class="fa fa-circle-o text-danger hidden"></i></span>'
 				+ '<ul class="dropdown-menu dropdown-menu-right">';
-			 
+
 			// Add scheduler configuration
-			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, null, 'service:vm:schedule') + '</li>';
+			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, null, 'service:vm:schedule', null, 'service-vm-schedule-check-link')
+				+ '</li>';
 
 			// Add history download
 			result += '<li>' + current.$super('renderServicelink')('history menu-icon', REST_PATH + 'service/vm/' + subscription.id + '/history-' + subscription.id + '.csv', null, 'service:vm:history', ' download') + '</li>';
@@ -240,10 +242,22 @@ define(function () {
 		/**
 		 * Display the status of the VM
 		 */
-		renderDetailsFeatures: function (subscription) {
+		renderDetailsFeatures: function (subscription, $tr, $td) {
 			var status = subscription.data.vm.status.toLowerCase();
 			var busy = subscription.data.vm.busy;
 			var deployed = status === 'powered_off' && subscription.data.vm.deployed;
+			if (subscription.data.schedules) {
+				// At least on schedule
+				$td.find('.service-vm-schedule-check i').removeClass('hidden');
+				var $link = $td.find('.service-vm-schedule-check-link');
+				if ($link.has('.service-vm-schedule-count').length === 0) {
+					$link.append('<span class="label label-success service-vm-schedule-count pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:nb-schedules'] + '"></span>');
+				}
+				$link.find('.service-vm-schedule-count').text(subscription.data.schedules);
+			} else {
+				$td.find('.service-vm-schedule-check i').addClass('hidden');
+			}
+			$td.find('.service-vm-schedule-count').text(subscription.data.schedules || '');
 			return '<i data-toggle="tooltip" data-html="true" title="' + (current.$messages['service:vm:' + status] || status) +
 				(busy ? ' (' + current.$messages['service:vm:busy'] + ')' : '') +
 				(deployed ? '<br>[' + current.$messages['service:vm:deployed'] + ']' : '') + '" class="' +
