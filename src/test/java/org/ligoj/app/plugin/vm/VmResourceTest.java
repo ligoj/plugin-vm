@@ -467,4 +467,25 @@ public class VmResourceTest extends AbstractServerTest {
 
 	}
 
+	/**
+	 * Very dummy and ugly test, not very proud. But for now the {@link Vm}
+	 * class is only in the contract of {@link VmServicePlugin} and without
+	 * usage.
+	 */
+	@Test
+	public void testVm() {
+		final Vm vm = new Vm();
+		vm.setBusy(true);
+		vm.setCpu(1);
+		vm.setDeployed(true);
+		vm.setOs("os");
+		vm.setRam(2048);
+		vm.setStatus(VmStatus.SUSPENDED);
+		vm.setName("name");
+		Assert.assertEquals("name", vm.getName());
+		Assert.assertEquals("os", vm.getOs());
+		Assert.assertEquals(2048, vm.getRam());
+		Assert.assertEquals(1, vm.getCpu());
+		Assert.assertEquals(VmStatus.SUSPENDED, vm.getStatus());
+	}
 }

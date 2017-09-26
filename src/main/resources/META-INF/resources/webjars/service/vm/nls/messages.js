@@ -1,6 +1,8 @@
 define({
 	"root" : {
 		"service:vm" : "Virtualization",
+		"service:vm:os" : "OS",
+		"service:vm:resources" : "Resources",
 		"service:vm:powered_off" : "Powered off",
 		"service:vm:powered_on" : "Powered on",
 		"service:vm:suspended" : "Suspended",
@@ -16,7 +18,6 @@ define({
 		"service:vm:suspend-help" : "Met en pause la VM",
 		"service:vm:shutdown" : "Stop",
 		"service:vm:shutdown-help" : "Un arrêt système de la VM : menu démarrer / arrêter",
-		"service:vm:vcloud:console" : "Console",
 		"service:vm:operation" : "Operation",
 		"service:vm:schedule" : "Schedule",
 		"service:vm:cron" : "CRON Expression",
