@@ -88,6 +88,9 @@ public class VmResourceTest extends AbstractServerTest {
 
 	private ServicePluginLocator mockServicePluginLocator;
 
+	@Autowired
+	private SecurityHelper securityHelper;
+
 	@Before
 	public void prepareData() throws IOException {
 		// Only with Spring context
@@ -450,14 +453,23 @@ public class VmResourceTest extends AbstractServerTest {
 		// Manual execution
 		resource.execute(subscription, VmOperation.OFF);
 
-		// Report contains this execution (OFF)
+		// Manual execution by schedule, by pass the security check
+		securityHelper.setUserName(SecurityHelper.SYSTEM_USERNAME);
+		resource.execute(subscriptionRepository.findOneExpected(subscription), VmOperation.ON);
+
+		// Restore the current user
+		initSpringSecurityContext(getAuthenticationName());
+
+		// Report contains these executions (OFF/ON)
 		output = new ByteArrayOutputStream();
 		((StreamingOutput) resource.downloadReport(subscription, "file1").getEntity()).write(output);
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
-		Assert.assertEquals(2, lines.size());
+		Assert.assertEquals(3, lines.size());
 		Assert.assertTrue(lines.get(1).endsWith(";gfi-gstack;gStack;service:vm:test:test;fdaugan;true"));
 		Assert.assertTrue(lines.get(1).contains(";OFF;"));
-		Assert.assertEquals(1, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
+		Assert.assertTrue(lines.get(2).endsWith(";gfi-gstack;gStack;service:vm:test:test;_system;true"));
+		Assert.assertTrue(lines.get(2).contains(";ON;"));
+		Assert.assertEquals(2, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
 		Assert.assertEquals(subscription,
 				vmExecutionRepository.findAllBy("subscription.id", subscription).get(0).getSubscription().getId().intValue());
 
