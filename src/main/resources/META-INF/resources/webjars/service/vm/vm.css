@@ -13,10 +13,10 @@ th.next-execution {
 	width: 145px;
 }
 .masonry-container .node.service-vm.mode-th-large table.subscriptions th.features {
-	width: 128px;
+	width: 132px;
 }
 .masonry-container .node.service-vm table.subscriptions th.features {
-	width: 113px;
+	width: 120px;
 }
 .fa.deployed:after {
 	position: relative;
