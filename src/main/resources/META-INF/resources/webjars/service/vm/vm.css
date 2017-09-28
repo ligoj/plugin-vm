@@ -13,10 +13,10 @@ th.next-execution {
 	width: 145px;
 }
 .masonry-container .node.service-vm.mode-th-large table.subscriptions th.features {
-	width: 132px;
+	width: 140px;
 }
 .masonry-container .node.service-vm table.subscriptions th.features {
-	width: 120px;
+	width: 128px;
 }
 .fa.deployed:after {
 	position: relative;
@@ -27,8 +27,8 @@ th.next-execution {
 }
 .service-vm-schedule-check {
 	position: absolute;
-	width: 0px;
-	height: 0px;
+	width: 0;
+	height: 0;
 }
 .service-vm-schedule-check i {
 	position: relative;
