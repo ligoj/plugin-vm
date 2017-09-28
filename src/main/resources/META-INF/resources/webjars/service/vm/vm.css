@@ -39,3 +39,6 @@ th.next-execution {
     text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
     pointer-events: none;
 }
+.service-vm-status {
+	text-shadow: black 0px 0px 1px;
+}

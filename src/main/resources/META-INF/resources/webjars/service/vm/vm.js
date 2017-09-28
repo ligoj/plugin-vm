@@ -262,7 +262,7 @@ define(function () {
 				(busy ? ' (' + current.$messages['service:vm:busy'] + ')' : '') +
 				(deployed ? '<br>[' + current.$messages['service:vm:deployed'] + ']' : '') + '" class="' +
 				(current.vmStatus[status] || 'fa fa-question-circle-o text-muted') +
-				(busy ? ' faa-flash animated' : '') + (deployed ? ' deployed' : '') + '"></i>';
+				(busy ? ' faa-flash animated' : '') + (deployed ? ' deployed' : '') + ' fa-fw service-vm-status"></i>';
 		},
 
 		/**
