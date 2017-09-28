@@ -188,8 +188,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Execute a {@link VmOperation} to the associated VM. This a synchronous
-	 * call, but the effective execution is delayed.
+	 * Execute a {@link VmOperation} to the associated VM and checks its
+	 * visibility against the current principal user. This a synchronous call,
+	 * but the effective execution is delayed.
 	 * 
 	 * @param subscription
 	 *            The {@link Subscription} identifier associated to the VM.
