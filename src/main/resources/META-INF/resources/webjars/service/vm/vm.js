@@ -33,7 +33,7 @@ define(function () {
 		},
 
 		initialize: function () {
-			current.$super('$view').on('click', '.subscriptions .service-vm-operation', current.serviceVmOperation);
+			current.$super('$view').off('click.service-vm-operation').on('click.service-vm-operation', '.subscriptions .service-vm-operation', current.serviceVmOperation);
 		},
 
 		/**
@@ -328,6 +328,8 @@ define(function () {
 			var operation = $(this).attr('data-operation');
 			var vm = subscription.parameters['service:vm:vcloud:id'];
 			var id = subscription.id;
+			var $button = $(this);
+			$button.attr('disabled', 'disabled').find('.fa').addClass('faa-flash animated');
 			$.ajax({
 				dataType: 'json',
 				url: REST_PATH + 'service/vm/' + id + '/' + operation,
@@ -335,6 +337,9 @@ define(function () {
 				type: 'POST',
 				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages['vm-operation-success'])([vm, operation]));
+				},
+				complete: function () {
+					$button.removeAttr('disabled').find('.fa').removeClass('faa-flash animated');
 				}
 			});
 		}
