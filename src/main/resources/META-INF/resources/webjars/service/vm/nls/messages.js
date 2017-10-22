@@ -2,6 +2,7 @@ define({
 	"root" : {
 		"service:vm" : "Virtualization",
 		"service:vm:os" : "OS",
+		"service:vm:network" : "Network",
 		"service:vm:resources" : "Resources",
 		"service:vm:powered_off" : "Powered off",
 		"service:vm:powered_on" : "Powered on",

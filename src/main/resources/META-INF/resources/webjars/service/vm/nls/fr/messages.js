@@ -1,5 +1,6 @@
 define({
 	"service:vm" : "Virtualisation",
+	"service:vm:network" : "Réseau",
 	"service:vm:powered_off" : "Eteinte",
 	"service:vm:powered_on" : "Allumée",
 	"service:vm:suspended" : "Suspendue",

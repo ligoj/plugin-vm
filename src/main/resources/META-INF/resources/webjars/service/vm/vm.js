@@ -266,6 +266,19 @@ define(function () {
 		},
 
 		/**
+		 * Return network details
+		 */
+		renderNetwork: function (networks) {
+			var result = [];
+			var networkTypeToIcon = {'public': 'globe', 'private': 'lock'};
+			networks.forEach(function(network) {
+				result.push('<i class="fa fa-' + (networkTypeToIcon[network.type] || 'slash') + '"></i> ' + network.ip + (network.dns ? ' [' + network.dns + ']' : ''));
+			});
+			
+			return result.join(', ');
+		},
+
+		/**
 		 * Delete a scheduled operation.
 		 * @param {object} Schedule to delete.
 		 */

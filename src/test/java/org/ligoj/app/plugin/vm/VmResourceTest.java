@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -493,9 +494,14 @@ public class VmResourceTest extends AbstractServerTest {
 		vm.setOs("os");
 		vm.setRam(2048);
 		vm.setStatus(VmStatus.SUSPENDED);
+		vm.setNetworks(Collections.singletonList(new VmNetwork("type", "1.2.3.4", "dns")));
 		vm.setName("name");
 		Assert.assertEquals("name", vm.getName());
 		Assert.assertEquals("os", vm.getOs());
+		Assert.assertEquals(1, vm.getNetworks().size());
+		Assert.assertEquals("dns", vm.getNetworks().get(0).getDns());
+		Assert.assertEquals("type", vm.getNetworks().get(0).getType());
+		Assert.assertEquals("1.2.3.4", vm.getNetworks().get(0).getIp());
 		Assert.assertEquals(2048, vm.getRam());
 		Assert.assertEquals(1, vm.getCpu());
 		Assert.assertEquals(VmStatus.SUSPENDED, vm.getStatus());

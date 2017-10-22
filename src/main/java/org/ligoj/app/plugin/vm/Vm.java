@@ -1,5 +1,7 @@
 package org.ligoj.app.plugin.vm;
 
+import java.util.List;
+
 import org.ligoj.app.plugin.vm.model.VmStatus;
 import org.ligoj.bootstrap.core.DescribedBean;
 
@@ -23,6 +25,11 @@ public class Vm extends DescribedBean<String> {
 	 * Memory, MB.
 	 */
 	private int ram;
+
+	/**
+	 * Networks of this VM
+	 */
+	private List<VmNetwork> networks;
 
 	private boolean busy;
 	private boolean deployed;
