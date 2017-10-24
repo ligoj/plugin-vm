@@ -22,8 +22,9 @@ th.next-execution {
 	position: relative;
 	content: "///";
 	color: orange;
-	left: 11px;
-	float: left;
+	left: 3px;
+    float: left;
+    width: 0;
 }
 .service-vm-schedule-check {
 	position: absolute;
