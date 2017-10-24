@@ -32,6 +32,10 @@ public class Vm extends DescribedBean<String> {
 	private List<VmNetwork> networks;
 
 	private boolean busy;
+
+	/**
+	 * When <code>true</code>, the VM is consuming (reserved) compute resources.
+	 */
 	private boolean deployed;
 	private String os;
 }
