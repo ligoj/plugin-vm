@@ -34,6 +34,7 @@ import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractServicePlugin;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
+import org.ligoj.bootstrap.core.DateUtils;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.quartz.CronExpression;
@@ -166,9 +167,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		final JobDetailImpl object = (JobDetailImpl) vmJobDetailFactoryBean.getObject();
 		object.getJobDataMap().put("vmServicePlugin", this);
 		final Trigger trigger = TriggerBuilder.newTrigger().withIdentity(id, SCHEDULE_TRIGGER_GROUP)
-				.withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCron())).forJob(object)
-				.usingJobData("subscription", schedule.getSubscription().getId()).usingJobData("operation", schedule.getOperation().name())
-				.usingJobData("schedule", schedule.getId()).build();
+				.withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCron()).inTimeZone(DateUtils.getApplicationTimeZone()))
+				.forJob(object).usingJobData("subscription", schedule.getSubscription().getId())
+				.usingJobData("operation", schedule.getOperation().name()).usingJobData("schedule", schedule.getId()).build();
 
 		// Add this trigger
 		vmSchedulerFactoryBean.getObject().scheduleJob(trigger);
