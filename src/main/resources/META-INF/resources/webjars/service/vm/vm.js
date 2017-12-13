@@ -179,7 +179,12 @@ define(function () {
 					});
 				});
 			}).on('shown.bs.modal', function (event) {
-				_('cron').trigger('focus');
+				// Focus to the most wanted component depending on the state
+				if (current.currentId) {
+					_('cron').trigger('focus');
+				} else {
+					_('operation').select2('focus');
+				}
 			}).on('submit', function (e) {
 				e.preventDefault();
 				current.saveSchedule(current.formToObject());
