@@ -23,11 +23,6 @@ import lombok.Setter;
 public class VmExecution extends AbstractPersistable<Integer> {
 
 	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 1L;
-
-	/**
 	 * Execution date
 	 */
 	@NotNull

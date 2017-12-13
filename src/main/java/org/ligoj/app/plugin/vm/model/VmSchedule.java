@@ -21,11 +21,6 @@ import lombok.Setter;
 public class VmSchedule extends AbstractPersistable<Integer> {
 
 	/**
-	 * SID
-	 */
-	private static final long serialVersionUID = 4795855466011388616L;
-
-	/**
 	 * CRON expression for this schedule
 	 */
 	@NotNull

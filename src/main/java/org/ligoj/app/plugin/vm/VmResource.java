@@ -134,7 +134,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 
 		// Remove all schedules associated to this subscription from persisted
 		// entities
-		vmScheduleRepository.delete(schedule);
+		vmScheduleRepository.deleteById(schedule);
 	}
 
 	private void unscheduleQuartz(final int schedule) throws SchedulerException {
