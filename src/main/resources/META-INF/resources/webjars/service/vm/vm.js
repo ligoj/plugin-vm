@@ -54,7 +54,7 @@ define(function () {
 			current.table && current.table.fnDestroy();
 			current.table = _('vm-schedules').dataTable({
 				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-6"i><"col-xs-6"p>>',
-				data : current.model.configuration.schedules,
+				data: current.model.configuration.schedules,
 				columns: [{
 					data: 'operation',
 					render: function (operation) {
@@ -96,16 +96,16 @@ define(function () {
 				}]
 			});
 		},
-		
-		getNextExecution: function(cron) {
+
+		getNextExecution: function (cron) {
 			return cron ? moment(later.schedule(later.parse.cron(cron, true)).next(1))
-					.format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss') : '';
+				.format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss') : '';
 		},
-		
+
 		/**
 		 * Operation format.
 		 */
-		formatOperation: function(operation) {
+		formatOperation: function (operation) {
 			return '<i class="' + current.vmOperations[operation.toUpperCase()] + '"></i> ' + current.$messages['service:vm:' + operation.toLowerCase()];
 		},
 
@@ -120,7 +120,7 @@ define(function () {
 				if (current.vmOperations.hasOwnProperty(operation)) {
 					operations.push({
 						id: operation,
-						text : current.formatOperation(operation)
+						text: current.formatOperation(operation)
 					});
 				}
 			}
@@ -156,7 +156,7 @@ define(function () {
 				var operation = schedule.operation;
 				_('operation').select2('data', operation ? {
 					id: operation.toUpperCase(),
-					text : current.formatOperation(operation)
+					text: current.formatOperation(operation)
 				} : null);
 				_('cron').val(schedule.cron || '').trigger('change');
 				require(['i18n!jqcron/nls/messages', 'jqcron/jqcron', 'css!jqcron/jqcron'], function (messages) {
@@ -174,7 +174,9 @@ define(function () {
 						default_period: 'week',
 						default_value: schedule.cron,
 						no_reset_button: false,
-						texts: {'default' : messages},
+						texts: {
+							'default': messages
+						},
 						lang: 'default'
 					});
 				});
@@ -195,7 +197,7 @@ define(function () {
 				current.deleteSchedule(current.table.fnGetData($tr[0]));
 			});
 		},
-		
+
 		formToObject: function () {
 			var result = {
 				id: current.currentId,
@@ -214,22 +216,27 @@ define(function () {
 			var result = '';
 			var operation;
 
+			// Operation menu
+			result += '<div class="btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
+				current.$messages['service:vm:operation'] + '"><i class="fa fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
+				'<ul class="dropdown-menu dropdown-menu-right">';
 			// Add Off,On,Shutdown,Reset,Reboot,Suspend
 			for (operation in current.vmOperations) {
 				if (current.vmOperations.hasOwnProperty(operation)) {
-					result += current.renderServiceServiceVmOperationButton(current.vmOperations[operation], operation);
+					result += '<li>' + current.renderServiceServiceVmOperationButton(current.vmOperations[operation], operation) + '</li>';
 				}
 			}
+			result += '</ul></div>';
 
 			// Schedule menu
-			result += '<div class="btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="'
-				+ current.$messages['service:vm:schedule'] + '"><i class="fa fa-calendar dropdown-toggle" data-toggle="dropdown"></i>'
-				+ '<span class="service-vm-schedule-check"><i class="fa fa-circle-o text-danger hidden"></i></span>'
-				+ '<ul class="dropdown-menu dropdown-menu-right">';
+			result += '<div class="btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
+				current.$messages['service:vm:schedule'] + '"><i class="fa fa-calendar dropdown-toggle" data-toggle="dropdown"></i>' +
+				'<span class="service-vm-schedule-check"><i class="fa fa-circle-o text-danger hidden"></i></span>' +
+				'<ul class="dropdown-menu dropdown-menu-right">';
 
 			// Add scheduler configuration
-			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, null, 'service:vm:schedule', null, 'service-vm-schedule-check-link')
-				+ '</li>';
+			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, null, 'service:vm:schedule', null, 'service-vm-schedule-check-link') +
+				'</li>';
 
 			// Add history download
 			result += '<li>' + current.$super('renderServicelink')('history menu-icon', REST_PATH + 'service/vm/' + subscription.id + '/history-' + subscription.id + '.csv', null, 'service:vm:history', ' download') + '</li>';
@@ -239,9 +246,10 @@ define(function () {
 		},
 
 		renderServiceServiceVmOperationButton: function (icon, operation) {
-			return '<button class="btn-link feature service-vm-operation service-vm-operation-' + operation.toLowerCase() +
+			return '<a class="feature service-vm-operation service-vm-operation-' + operation.toLowerCase() +
 				'" data-operation="' + operation + '" data-toggle="tooltip" title="' + current.$messages['service:vm:' +
-					operation.toLowerCase()] + '"><i class="' + icon + '"></i></button>';
+					operation.toLowerCase() + '-help'] + '"><i class="fa-fw menu-icon ' + icon + '"></i> ' + current.$messages['service:vm:' +
+					operation.toLowerCase()] + '</a>';
 		},
 
 		/**
@@ -275,11 +283,14 @@ define(function () {
 		 */
 		renderNetwork: function (networks) {
 			var result = [];
-			var networkTypeToIcon = {'public': 'globe', 'private': 'lock'};
-			networks.forEach(function(network) {
+			var networkTypeToIcon = {
+				'public': 'globe',
+				'private': 'lock'
+			};
+			networks.forEach(function (network) {
 				result.push('<i class="fa fa-' + (networkTypeToIcon[network.type] || 'slash') + '"></i> ' + network.ip + (network.dns ? ' [' + network.dns + ']' : ''));
 			});
-			
+
 			return result.join(', ');
 		},
 
@@ -319,7 +330,7 @@ define(function () {
 				}
 			});
 		},
-		
+
 		/**
 		 * Reload the model
 		 */
