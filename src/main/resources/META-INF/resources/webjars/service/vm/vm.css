@@ -43,3 +43,13 @@ th.next-execution {
 .service-vm-status {
 	text-shadow: black 0px 0px 1px;
 }
+
+.vm-snapshot-create-stop i, .vm-snapshot-create-no-stop i {
+	position: relative;
+	right: -5px;
+	width: 0;
+}
+
+.vm-snapshot-create+.dropdown-menu {
+	min-width: 200px;
+}

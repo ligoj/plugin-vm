@@ -20,4 +20,9 @@ public class VmConfigurationVo {
 	 */
 	@Valid
 	private List<VmScheduleVo> schedules = new ArrayList<>();
+
+	/**
+	 * When <code>true</code> the related tool supports snapshot.
+	 */
+	boolean supportSnapshot;
 }

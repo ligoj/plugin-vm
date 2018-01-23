@@ -30,6 +30,7 @@ import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
 import org.ligoj.app.plugin.vm.model.VmExecution;
 import org.ligoj.app.plugin.vm.model.VmOperation;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
+import org.ligoj.app.plugin.vm.snapshot.Snapshotting;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractServicePlugin;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
@@ -91,7 +92,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	protected SubscriptionResource subscriptionResource;
 
 	@Autowired
-	protected ServicePluginLocator servicePluginLocator;
+	protected ServicePluginLocator locator;
 
 	@Autowired
 	protected SecurityHelper securityHelper;
@@ -114,8 +115,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Remove all schedules of this subscription from the current scheduler,
-	 * then from the data base.
+	 * Remove all schedules of this subscription from the current scheduler, then
+	 * from the data base.
 	 */
 	protected void unscheduleAll(final int subscription) throws SchedulerException {
 		// Remove current schedules from the memory
@@ -143,8 +144,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Remove all schedules matching the given predicate from the current
-	 * scheduler, then from the data base.
+	 * Remove all schedules matching the given predicate from the current scheduler,
+	 * then from the data base.
 	 */
 	private void unscheduleAll(final Predicate<TriggerKey> predicate) throws SchedulerException {
 		// Remove current schedules from the memory
@@ -189,9 +190,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Execute a {@link VmOperation} to the associated VM and checks its
-	 * visibility against the current principal user. This a synchronous call,
-	 * but the effective execution is delayed.
+	 * Execute a {@link VmOperation} to the associated VM and checks its visibility
+	 * against the current principal user. This a synchronous call, but the
+	 * effective execution is delayed.
 	 * 
 	 * @param subscription
 	 *            The {@link Subscription} identifier associated to the VM.
@@ -207,8 +208,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Execute a {@link VmOperation} to the associated VM. This a synchronous
-	 * call, but the effective execution is delayed.
+	 * Execute a {@link VmOperation} to the associated VM. This a synchronous call,
+	 * but the effective execution is delayed.
 	 * 
 	 * @param subscription
 	 *            The {@link Subscription} associated to the VM.
@@ -228,7 +229,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 
 		try {
 			// Execute the operation if plug-in still available
-			servicePluginLocator.getResourceExpected(node, VmServicePlugin.class).execute(subscription.getId(), operation);
+			locator.getResourceExpected(node, VmServicePlugin.class).execute(subscription.getId(), operation);
 			log.info("Operation {} on subscription {}, node {} : succeed", operation, subscription.getId(), node);
 			vmExecution.setSucceed(true);
 		} catch (final Exception e) {
@@ -249,7 +250,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public VmConfigurationVo getConfiguration(@PathParam("subscription") final int subscription) {
 		// Check the subscription is visible
-		subscriptionResource.checkVisibleSubscription(subscription);
+		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
 
 		// Get the details
 		final VmConfigurationVo result = new VmConfigurationVo();
@@ -263,6 +264,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 			scedules.add(vo);
 		}
 		result.setSchedules(scedules);
+
+		// Add snapshot capability
+		result.setSupportSnapshot(locator.getResource(entity.getNode().getId(), Snapshotting.class) != null);
 		return result;
 	}
 
@@ -324,10 +328,10 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * @param subscription
 	 *            The subscription identifier to update.
 	 * @param schedule
-	 *            The schedule to save or update. The CRON expression may be
-	 *            either in the 5 either in 6 parts. The optional 6th
-	 *            corresponds to the "seconds" and will be prepended to the
-	 *            expression to conform to Quartz format.
+	 *            The schedule to save or update. The CRON expression may be either
+	 *            in the 5 either in 6 parts. The optional 6th corresponds to the
+	 *            "seconds" and will be prepended to the expression to conform to
+	 *            Quartz format.
 	 */
 	@POST
 	@Transactional
@@ -341,10 +345,10 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * @param subscription
 	 *            The subscription identifier to update.
 	 * @param schedule
-	 *            The schedule to save or update. The CRON expression may be
-	 *            either in the 5 either in 6 parts. The optional 6th
-	 *            corresponds to the "seconds" and will be prepended to the
-	 *            expression to conform to Quartz format.
+	 *            The schedule to save or update. The CRON expression may be either
+	 *            in the 5 either in 6 parts. The optional 6th corresponds to the
+	 *            "seconds" and will be prepended to the expression to conform to
+	 *            Quartz format.
 	 */
 	@PUT
 	@Transactional

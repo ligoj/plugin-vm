@@ -27,11 +27,25 @@ define({
 		"service:vm:deployed": "Deployed",
 		"service:vm:history": "History",
 		"service:vm:nb-schedules": "Number of schedules for this VM",
+		"service:vm:snapshot": "Snapshot",
+		"service:vm:snapshot-create": "Snapshot <span class=\"caret\"/>",
+		"service:vm:snapshot-create-no-stop": "Snapshot",
+		"service:vm:snapshot-create-no-stop-help": "Snapshot is taken without stopping the VM. Data integrity may not be guaranteed",
+		"service:vm:snapshot-create-stop": "Snapshot (stop VM)",
+		"service:vm:snapshot-create-stop-help": "VM will be stopped, then a snapshot is created. Data integrity is guaranteed",
+		"service:vm:snapshot-restore": "Restore",
+		"service:vm:snapshot-delete": "Delete this snapshot",
+		"service:vm:snapshot-volumes": "Volumes",
+		"service:vm:snapshot-volumes-help": "Snapshot volumes attached to this VM snapshot",
+		"service:vm:snapshot-id-help": "Snapshot identifier inside the node",
+		"service:vm:snapshot-date": "Date",
+		"service:vm:snapshot-date-help": "Snapshot creation date",
+		"service:vm:snapshot-status": "Status",
+		"service:vm:snapshot-status-help": "Snapshot status progress",
 		"vm-operation-success": "Requesting operation {{[1]}} done on VM {{[0]}}",
 		"error": {
 			"vm-cron": "Invalid CRON expression",
-			"vm-cron-second": "Valid CRON expression, but cannot be every second",
-			"vcloud-login": "Authentication failed"
+			"vm-cron-second": "Valid CRON expression, but cannot be every second"
 		}
 	},
 	"fr": true

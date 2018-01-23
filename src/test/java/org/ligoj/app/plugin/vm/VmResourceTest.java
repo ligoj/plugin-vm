@@ -265,7 +265,7 @@ public class VmResourceTest extends AbstractServerTest {
 	public void execute() throws Exception {
 		final VmResource resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.servicePluginLocator = mockServicePluginLocator;
+		resource.locator = mockServicePluginLocator;
 		resource.execute(subscription, VmOperation.OFF);
 		Mockito.verify(mockVmTool).execute(subscription, VmOperation.OFF);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.ON);
@@ -287,7 +287,7 @@ public class VmResourceTest extends AbstractServerTest {
 		subscriptionRepository.saveAndFlush(entity);
 
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.servicePluginLocator = mockServicePluginLocator;
+		resource.locator = mockServicePluginLocator;
 		resource.execute(entity, VmOperation.OFF);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.OFF);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.ON);
@@ -308,7 +308,7 @@ public class VmResourceTest extends AbstractServerTest {
 	public void executeError() throws Exception {
 		final VmResource resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.servicePluginLocator = mockServicePluginLocator;
+		resource.locator = mockServicePluginLocator;
 		Mockito.doThrow(new AssertionError("_some_error_")).when(mockVmTool).execute(subscription, VmOperation.OFF);
 		resource.execute(subscription, VmOperation.OFF);
 	}
@@ -441,7 +441,7 @@ public class VmResourceTest extends AbstractServerTest {
 	public void downloadReport() throws IOException, SchedulerException {
 		final VmResource resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.servicePluginLocator = mockServicePluginLocator;
+		resource.locator = mockServicePluginLocator;
 
 		// Report without executions
 		ByteArrayOutputStream output = new ByteArrayOutputStream();

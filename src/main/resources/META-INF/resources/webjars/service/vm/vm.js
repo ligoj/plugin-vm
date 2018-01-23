@@ -1,15 +1,26 @@
+/*jshint esversion: 6*/
 define(function () {
 	var current = {
 
 		/**
-		 * VM table
+		 * VM schedule table.
 		 */
 		table: null,
+
+		/**
+		 * VM snapshot table.
+		 */
+		snapshotTable: null,
 
 		/**
 		 * Current configuration.
 		 */
 		model: null,
+
+		/**
+		 * Current identifier being updated.
+		 */
+		currentId: 0,
 
 		/**
 		 * Managed status.
@@ -41,16 +52,157 @@ define(function () {
 		 */
 		configure: function (configuration) {
 			current.model = configuration;
-			_('vm-name').text(configuration.parameters['service:vm:vcloud:organization'] + ' / ' + configuration.parameters['service:vm:vcloud:id']);
+
+			// Configure schedules
 			require(['later/later.mod', 'pretty-cron/pretty-cron'], function (later) {
 				current.initializeVmConfiguration(later);
 				current.later = later;
 				later.date.localTime();
 				_('subscribe-configuration-vm').removeClass('hide');
 			});
+
+			// Configure snapshot if supported
+			if (current.model.configuration.supportSnapshot) {
+				_('vm-snapshot-tab-trigger').off('shown.bs.tab').one('shown.bs.tab', function () {
+					current.initializeVmSnapshotsTable();
+				}).closest('li').removeClass('active').closest('.nav-tabs').removeClass('hidden');
+			} else {
+				_('vm-snapshot-tab-trigger').closest('li').removeClass('active').closest('.nav-tabs').addClass('hidden');
+			}
+			_('vm-snapshot-tab').removeClass('active');
+			_('vm-schedule-tab').addClass('active');
 		},
 
-		initializeTable: function () {
+		initializeVmSnapshotsTable: function () {
+			current.snapshotTable && current.snapshotTable.fnDestroy();
+			current.snapshotTable = _('vm-snapshots').dataTable({
+				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				serverSide: false,
+				searching: true,
+				destroy: true,
+				order: [
+					[0, 'desc']
+				],
+				ajax: {
+					url: REST_PATH + 'service/vm/' + current.model.id + '/snapshot',
+					dataSrc: ''
+				},
+				columns: [{
+					data: 'date',
+					className: 'responsive-datetime',
+					render: function (date) {
+						return moment(date).format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss');
+					}
+				}, {
+					data: 'id'
+				}, {
+					data: 'volumes',
+					render: function (volumes, mode) {
+						var total = 0;
+						if (volumes.length === 0) {
+							// No disk...
+							if (mode === 'display') {
+								return current.$messages['service:vm:snapshot-no-volume'];
+							}
+						} else {
+							// Add volume details : size, name, id
+							var result = ' <span class="small">(' + volumes.length + ')</span> ';
+							for (var index in volumes) {
+								var volume = volumes[index];
+								total += volume.size || 0;
+								result += ' <span data-toggle="tooltip" title="Id: ' + volume.id + '<br>Name: ' + volume.name + '"><i class="fa fa-database"></i> ' + formatManager.formatSize(volume.size * 1024 * 1024 * 1024, 3) + ' ' + volume.name + '</span>';
+							}
+							if (mode === 'display') {
+								return formatManager.formatSize(total * 1024 * 1024 * 1024, 3) + result;
+							}
+						}
+						return total;
+					}
+				}, {
+					data: 'statusText',
+					render: function (status, mode, data) {
+						if (mode === 'display') {
+							return (data.pending ? '<i class="fa fa-circle-o-notch fa-spin"></i> ' : '<i class="fa fa-check"></i> ') + status;
+						}
+						return status;
+					}
+				}, {
+					data: null,
+					orderable: false,
+					width: '40px',
+					render: function () {
+						// var result = '<a class="restore"><i class="fa fa-history" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-restore'] + '"></i></a>';
+						// TODO result += '<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>';
+						return '';
+					}
+				}],
+				buttons: [{
+					extend: 'collection',
+					className: 'btn-success vm-snapshot-create disabled',
+					text: current.$messages['service:vm:snapshot-create'],
+					autoClose: true,
+					buttons: [{
+						className: 'vm-snapshot-create-no-stop',
+						text: current.$messages['service:vm:snapshot-create-no-stop'] + '<i class="fa fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-no-stop-help'] +'"></i>',
+						action: current.createSnapshot
+					}, {
+						className: 'vm-snapshot-create-stop',
+						text: current.$messages['service:vm:snapshot-create-stop'] + '<i class="fa fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-stop-help'] +'"></i>',
+						action: current.createSnapshot
+					}]
+				}],
+				initComplete: function (_i, snapshots) {
+					var subscription = current.model.id;
+					if (current.hasPendingSnapshot(snapshots)) {
+						// At least one snapshot is pending: track it
+						current.disableSnapshot();
+						setTimeout(function () {
+							// Poll the unfinished snapshot
+							current.pollStart('snapshot-' + subscription, subscription, current.synchronizeSnapshot);
+						}, 10);
+					} else {
+						current.enableSnapshot();
+					}
+				}
+			});
+		},
+
+		/**
+		 * Return true when there is at least one pending snapshot.
+		 */
+		hasPendingSnapshot: function (snapshots) {
+			for (var index = 0; index < snapshots.length; index++) {
+				var snapshot = snapshots[index];
+				if (snapshot.pending) {
+					return true;
+				}
+			}
+			return false;
+		},
+
+		/**
+		 * Create a snapshot.
+		 */
+		createSnapshot: function (e) {
+			var $button = current.disableSnapshot();
+			var subscription = current.model.id;
+			var stop = $(e.target).closest('li').is('.vm-snapshot-create-stop');
+			$.ajax({
+				type: 'POST',
+				url: REST_PATH + 'service/vm/' + subscription + '/snapshot?stop=' + stop,
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function (data) {
+					notifyManager.notify(Handlebars.compile(current.$messages.created)(data.id));
+					current.pollStart('snapshot-' + subscription, subscription, current.synchronizeSnapshot);
+				},
+				error: function (data) {
+					current.enableSnapshot();
+				}
+			});
+		},
+
+		initializeSchedulesTable: function () {
 			current.table && current.table.fnDestroy();
 			current.table = _('vm-schedules').dataTable({
 				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-6"i><"col-xs-6"p>>',
@@ -93,6 +245,12 @@ define(function () {
 					extend: 'popup',
 					target: '#vm-schedules-popup',
 					className: 'btn-success btn-raised'
+				}, {
+					// Add history download button
+					extend: 'link',
+					text: current.$messages['service:vm:history'],
+					href: REST_PATH + 'service/vm/' + current.model.subscription + '/history-' + current.model.subscription + '.csv',
+					attr: 'download'
 				}]
 			});
 		},
@@ -113,7 +271,7 @@ define(function () {
 		 * Initialize VM configuration UI components
 		 */
 		initializeVmConfiguration: function (later) {
-			current.initializeTable();
+			current.initializeSchedulesTable();
 
 			var operations = [];
 			for (var operation in current.vmOperations) {
@@ -228,20 +386,9 @@ define(function () {
 			}
 			result += '</ul></div>';
 
-			// Schedule menu
-			result += '<div class="btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
-				current.$messages['service:vm:schedule'] + '"><i class="fa fa-calendar dropdown-toggle" data-toggle="dropdown"></i>' +
-				'<span class="service-vm-schedule-check"><i class="fa fa-circle-o text-danger hidden"></i></span>' +
-				'<ul class="dropdown-menu dropdown-menu-right">';
-
-			// Add scheduler configuration
-			result += '<li>' + current.$super('renderServicelink')('calendar menu-icon', '#/home/project/' + subscription.project + '/subscription/' + subscription.id, null, 'service:vm:schedule', null, 'service-vm-schedule-check-link') +
-				'</li>';
-
-			// Add history download
-			result += '<li>' + current.$super('renderServicelink')('history menu-icon', REST_PATH + 'service/vm/' + subscription.id + '/history-' + subscription.id + '.csv', null, 'service:vm:history', ' download') + '</li>';
-			result += '</ul></div>';
-
+			// Configuration link
+			result += '<a href="#/home/project/' + subscription.project + '/subscription/' + subscription.id + '" class="feature" data-toggle-"tooltip" title="' + current.$messages.configure + '">' +
+				'<i class="fa fa-gear"></i><span class="service-vm-configure-check"><i class="fa fa-circle-o text-danger hidden"></i></a>';
 			return result;
 		},
 
@@ -332,6 +479,25 @@ define(function () {
 		},
 
 		/**
+		 * Restore selected snapshot.
+		 * @param {Object} schedule to update/save : operation+CRON
+		 */
+		restoreSnapshot: function (snapshot) {
+			$.ajax({
+				type: schedule.id ? 'PUT' : 'POST',
+				url: REST_PATH + 'service/vm',
+				dataType: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify(schedule),
+				success: function (data) {
+					notifyManager.notify(Handlebars.compile(current.$messages[schedule.id ? 'updated' : 'created'])((schedule.id || data) + ' : ' + schedule.operation.toUpperCase()));
+					current.reload();
+					_('vm-schedules-popup').modal('hide');
+				}
+			});
+		},
+
+		/**
 		 * Reload the model
 		 */
 		reload: function () {
@@ -355,7 +521,6 @@ define(function () {
 		serviceVmOperation: function () {
 			var subscription = current.$super('subscriptions').fnGetData($(this).closest('tr')[0]);
 			var operation = $(this).attr('data-operation');
-			var vm = subscription.parameters['service:vm:vcloud:id'];
 			var id = subscription.id;
 			var $button = $(this);
 			$button.attr('disabled', 'disabled').find('.fa').addClass('faa-flash animated');
@@ -365,14 +530,100 @@ define(function () {
 				contentType: 'application/json',
 				type: 'POST',
 				success: function () {
-					notifyManager.notify(Handlebars.compile(current.$messages['vm-operation-success'])([vm, operation]));
+					notifyManager.notify(Handlebars.compile(current.$messages['vm-operation-success'])([id, operation]));
 				},
 				complete: function () {
 					$button.removeAttr('disabled').find('.fa').removeClass('faa-flash animated');
 				}
 			});
-		}
+		},
 
+
+		/**
+		 * Interval identifiers for polling
+		 */
+		polling: {},
+
+		/**
+		 * Stop the timer for polling
+		 */
+		pollStop: function (key) {
+			if (current.polling[key]) {
+				clearInterval(current.polling[key]);
+			}
+			delete current.polling[key];
+		},
+
+		/**
+		 * Timer for the polling.
+		 */
+		pollStart: function (key, id, synchronizeFunction) {
+			current.polling[key] = setInterval(function () {
+				synchronizeFunction(key, id);
+			}, 5000);
+		},
+
+		/**
+		 * Get the new snapshot status.
+		 */
+		synchronizeSnapshot: function (key, subscription) {
+			current.pollStop(key);
+			current.polling[key] = '-';
+			$.ajax({
+				dataType: 'json',
+				url: REST_PATH + 'service/vm/' + subscription + '/snapshot/task',
+				type: 'GET',
+				success: function (status) {
+					current.updateSnapshotStatus(status);
+					if (status.finishedRemote) {
+						return;
+					}
+					// Continue polling for this snapshot
+					current.pollStart(key, subscription, current.synchronizeSnapshot);
+				}
+			});
+		},
+
+		/**
+		 * Update the snapshot status.
+		 */
+		updateSnapshotStatus: function (status) {
+			if (status.finishedRemote) {
+				// Stop the polling, update the buttons
+				_('vm-snapshots').DataTable().ajax.reload();
+				current.updateSnapshotFinalStatus(status);
+			} else if (status.end) {
+				// Task is finished locally, but not remotely
+				_('vm-snapshots').DataTable().ajax.reload();
+			} else {
+				// Update the tooltip for the progress
+				var status = 'Phase: ' + status.phase + '<br/>Started: ' + formatManager.formatDateTime(status.start) + (status.snapshotInternalId ? '<br/>Internal reference:' + status.snapshotInternalId : '');
+				current.$super('$view').find('.vm-snapshot-create').attr('title', status);
+			}
+		},
+
+		enableSnapshot: function () {
+			var $button = current.$super('$view').find('.vm-snapshot-create').removeAttr('disabled').removeClass('disabled').removeClass('polling');
+			$button.find('i').remove();
+			return $button;
+		},
+		disableSnapshot: function () {
+			var $button = current.$super('$view').find('.vm-snapshot-create').attr('disabled', 'disabled').addClass('disabled').addClass('polling');
+			$button.find('i').remove();
+			$button.find('span').first().prepend('<i class="fa fa-circle-o-notch fa-spin"></i> ');
+			return $button;
+		},
+
+		/**
+		 * Update the final (finished) status, so "status.end" is true.
+		 */
+		updateSnapshotFinalStatus: function (status) {
+			var $button = current.enableSnapshot().find('i').remove();
+			if (status.failed) {
+				// Display an error
+				$button.find('span').first().prepend('<i class="text-error fa fa-warning"></i>');
+			}
+		}
 	};
 	return current;
 });
