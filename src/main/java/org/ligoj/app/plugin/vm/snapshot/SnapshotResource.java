@@ -76,7 +76,7 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 	 */
 	@POST
 	public VmSnapshotStatus create(@PathParam("subscription") final int subscription,
-			@QueryParam("stop") @DefaultValue("false") final boolean stop) throws Exception {
+			@QueryParam("stop") @DefaultValue("false") final boolean stop) {
 		// Check the visibility and get the contract implementation
 		final Snapshotting snap = getSnapshot(subscriptionResource.checkVisibleSubscription(subscription).getNode());
 		log.info("New snapshot requested for subscription {}", subscription);
@@ -137,31 +137,11 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 		return task;
 	}
 
-	/**
-	 * When <code>true</code> the task is really finished. Can be overridden to
-	 * update the real finished state stored in database. For sample, a task can be
-	 * finished from the client side, but not fully executed at the server side.
-	 * 
-	 * @param task
-	 *            The not <code>null</code> task to evaluate.
-	 * @return <code>true</code> when the task is finished.
-	 */
+	@Override
 	public boolean isFinished(final VmSnapshotStatus task) {
 		// Complete the status
 		getSnapshot(subscriptionResource.checkVisibleSubscription(task.getLocked().getId()).getNode()).completeStatus(task);
 		return task.isFinished() && task.isFinishedRemote();
-	}
-
-	// TODO Remove with API 2.0.3+
-	@Override
-	public VmSnapshotStatus createAsNeeded(final Integer lockedId) {
-		// Additional remote check (optional)
-		Optional.ofNullable(getTask(lockedId)).filter(t -> !isFinished(t)).ifPresent(task -> {
-			// On this service, there is already a running remote task
-			throw new BusinessException("concurrent-task-remote", task.getAuthor(), task.getStart(), lockedId);
-		});
-
-		return LongTaskRunnerSubscription.super.createAsNeeded(lockedId);
 	}
 
 }

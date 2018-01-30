@@ -14,12 +14,13 @@ import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractServerTest;
+import org.ligoj.app.MatcherUtil;
 import org.ligoj.app.dao.NodeRepository;
 import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.model.Node;
@@ -51,12 +52,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test class of {@link VmResource}
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
@@ -92,7 +93,7 @@ public class VmResourceTest extends AbstractServerTest {
 	@Autowired
 	private SecurityHelper securityHelper;
 
-	@Before
+	@BeforeEach
 	public void prepareData() throws IOException {
 		// Only with Spring context
 		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
@@ -123,7 +124,7 @@ public class VmResourceTest extends AbstractServerTest {
 
 	}
 
-	@After
+	@AfterEach
 	public void cleanTrigger() throws SchedulerException {
 
 		// Remove all previous VM trigger
@@ -151,7 +152,7 @@ public class VmResourceTest extends AbstractServerTest {
 		subscription.setNode(nodeRepository.findOneExpected("service:vm"));
 		em.persist(subscription);
 
-		Assert.assertEquals(1, subscriptionRepository.findAllByProject(project.getId()).size());
+		Assertions.assertEquals(1, subscriptionRepository.findAllByProject(project.getId()).size());
 		em.flush();
 		em.clear();
 
@@ -159,9 +160,9 @@ public class VmResourceTest extends AbstractServerTest {
 		subscriptionRepository.delete(subscription);
 		em.flush();
 		em.clear();
-		Assert.assertEquals(0, subscriptionRepository.findAllByProject(project.getId()).size());
-		Assert.assertEquals(0, vmScheduleRepository.findBySubscription(subscription.getId()).size());
-		Assert.assertEquals(0, vmExecutionRepository.findAllBy("subscription.id", subscription.getId()).size());
+		Assertions.assertEquals(0, subscriptionRepository.findAllByProject(project.getId()).size());
+		Assertions.assertEquals(0, vmScheduleRepository.findBySubscription(subscription.getId()).size());
+		Assertions.assertEquals(0, vmExecutionRepository.findAllBy("subscription.id", subscription.getId()).size());
 	}
 
 	@Test
@@ -188,13 +189,13 @@ public class VmResourceTest extends AbstractServerTest {
 			jobDetail.getJobDataMap().put("context", mockContext);
 			((RAMJobStore) resources.getJobStore()).storeJob(jobDetail, true);
 
-			Assert.assertEquals(1, this.vmScheduleRepository.findAll().size());
+			Assertions.assertEquals(1, this.vmScheduleRepository.findAll().size());
 
 			// Schedule all operations within the next 2 seconds
 			final String cron = "" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?";
 			final int id = mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.OFF)));
 			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron + " *", VmOperation.ON)));
-			Assert.assertEquals(3, this.vmScheduleRepository.findAll().size());
+			Assertions.assertEquals(3, this.vmScheduleRepository.findAll().size());
 
 			// Yield for the schedules
 			Thread.sleep(2500);
@@ -213,7 +214,7 @@ public class VmResourceTest extends AbstractServerTest {
 			vo.setId(id);
 			vo.setSubscription(subscription);
 			resource.updateSchedule(vo);
-			Assert.assertEquals(3, this.vmScheduleRepository.findAll().size());
+			Assertions.assertEquals(3, this.vmScheduleRepository.findAll().size());
 
 			// Yield for the schedules
 			Thread.sleep(2500);
@@ -230,14 +231,18 @@ public class VmResourceTest extends AbstractServerTest {
 		return id;
 	}
 
-	@Test(expected = ValidationJsonException.class)
+	@Test
 	public void createScheduleInvalidCron() throws Exception {
-		resource.createSchedule(newSchedule("ERROR_CRON", VmOperation.OFF));
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			resource.createSchedule(newSchedule("ERROR_CRON", VmOperation.OFF));
+		}), "cron", "vm-cron");
 	}
 
-	@Test(expected = ValidationJsonException.class)
+	@Test
 	public void createScheduleInvalidCronEverySecond() throws Exception {
-		resource.createSchedule(newSchedule("* * * ? * *", VmOperation.OFF));
+		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
+			resource.createSchedule(newSchedule("* * * ? * *", VmOperation.OFF));
+		}), "cron", "vm-cron-second");
 	}
 
 	private VmScheduleVo newSchedule(final String cron, final VmOperation operation) {
@@ -252,13 +257,13 @@ public class VmResourceTest extends AbstractServerTest {
 	public void getConfiguration() {
 		final VmConfigurationVo configuration = resource.getConfiguration(subscription);
 		final List<VmScheduleVo> schedules = configuration.getSchedules();
-		Assert.assertEquals(1, schedules.size());
-		Assert.assertEquals("0 0 0 1 1 ? 2050", schedules.get(0).getCron());
-		Assert.assertNotNull(schedules.get(0).getId());
-		Assert.assertEquals(VmOperation.OFF, schedules.get(0).getOperation());
+		Assertions.assertEquals(1, schedules.size());
+		Assertions.assertEquals("0 0 0 1 1 ? 2050", schedules.get(0).getCron());
+		Assertions.assertNotNull(schedules.get(0).getId());
+		Assertions.assertEquals(VmOperation.OFF, schedules.get(0).getOperation());
 
 		// Coverage only
-		Assert.assertEquals(VmOperation.OFF, VmOperation.values()[VmOperation.valueOf(VmOperation.OFF.name()).ordinal()]);
+		Assertions.assertEquals(VmOperation.OFF, VmOperation.values()[VmOperation.valueOf(VmOperation.OFF.name()).ordinal()]);
 	}
 
 	@Test
@@ -296,28 +301,30 @@ public class VmResourceTest extends AbstractServerTest {
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.SHUTDOWN);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.SUSPEND);
 
-		Assert.assertEquals(1, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
+		Assertions.assertEquals(1, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
 		final VmExecution execution = vmExecutionRepository.findBy("subscription.id", subscription);
-		Assert.assertFalse(execution.isSucceed());
-		Assert.assertEquals("fdaugan", execution.getTrigger());
-		Assert.assertEquals(VmOperation.OFF, execution.getOperation());
-		Assert.assertEquals("Plugin issue for _deleted_plugin_:Not found", execution.getError());
+		Assertions.assertFalse(execution.isSucceed());
+		Assertions.assertEquals("fdaugan", execution.getTrigger());
+		Assertions.assertEquals(VmOperation.OFF, execution.getOperation());
+		Assertions.assertEquals("Plugin issue for _deleted_plugin_:Not found", execution.getError());
 	}
 
-	@Test(expected = AssertionError.class)
+	@Test
 	public void executeError() throws Exception {
 		final VmResource resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		resource.locator = mockServicePluginLocator;
 		Mockito.doThrow(new AssertionError("_some_error_")).when(mockVmTool).execute(subscription, VmOperation.OFF);
-		resource.execute(subscription, VmOperation.OFF);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			resource.execute(subscription, VmOperation.OFF);
+		});
 	}
 
 	@Test
 	public void unscheduleAll() throws Exception {
-		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(1, vmScheduleRepository.findAll().size());
 		vmScheduleRepository.deleteAll();
-		Assert.assertEquals(0, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(0, vmScheduleRepository.findAll().size());
 		final Subscription entity = this.subscriptionRepository.findOneExpected(subscription);
 
 		final ApplicationContext mockContext = Mockito.mock(ApplicationContext.class);
@@ -349,7 +356,7 @@ public class VmResourceTest extends AbstractServerTest {
 			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.ON)));
 			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.ON)));
 			mockSchedule(vmScheduleRepository, resource.createSchedule(newSchedule(cron, VmOperation.ON)));
-			Assert.assertEquals(5, this.vmScheduleRepository.findAll().size());
+			Assertions.assertEquals(5, this.vmScheduleRepository.findAll().size());
 
 			// Persist another VM schedule for another subscription within the
 			// next 2 seconds
@@ -359,7 +366,7 @@ public class VmResourceTest extends AbstractServerTest {
 			final VmScheduleVo schedule2 = newSchedule("0 0 0 1 1 ? 2050", VmOperation.ON);
 			schedule2.setSubscription(otherEntity.getId());
 			resource.createSchedule(schedule2);
-			Assert.assertEquals(6, this.vmScheduleRepository.findAll().size());
+			Assertions.assertEquals(6, this.vmScheduleRepository.findAll().size());
 
 			// Yield for the schedules
 			Thread.sleep(2500);
@@ -377,14 +384,14 @@ public class VmResourceTest extends AbstractServerTest {
 
 		// Remove all triggers of the subscription
 		resource.unscheduleAll(subscription);
-		Assert.assertEquals(1, this.vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(1, this.vmScheduleRepository.findAll().size());
 		resource.unscheduleAll(otherEntity.getId());
-		Assert.assertEquals(0, this.vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(0, this.vmScheduleRepository.findAll().size());
 	}
 
 	@Test
 	public void deleteSchedule() throws Exception {
-		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(1, vmScheduleRepository.findAll().size());
 		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
 
 		// Persist another VM schedule for another subscription
@@ -395,7 +402,7 @@ public class VmResourceTest extends AbstractServerTest {
 		final VmScheduleVo schedule2 = newSchedule("0 0 0 1 1 ? 2050", VmOperation.OFF);
 		schedule2.setSubscription(otherEntity.getId());
 		final int schedule = resource.createSchedule(schedule2);
-		Assert.assertEquals(2, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(2, vmScheduleRepository.findAll().size());
 
 		resource.deleteSchedule(schedule);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.ON);
@@ -404,37 +411,37 @@ public class VmResourceTest extends AbstractServerTest {
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.RESET);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.SHUTDOWN);
 		Mockito.verify(mockVmTool, Mockito.never()).execute(subscription, VmOperation.SUSPEND);
-		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(1, vmScheduleRepository.findAll().size());
 
 		// Remove all triggers of the subscription
 		resource.unscheduleAll(subscription);
-		Assert.assertEquals(0, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(0, vmScheduleRepository.findAll().size());
 	}
 
 	@Test
 	public void afterPropertiesSet() throws Exception {
 		resource.unscheduleAll(subscription);
-		Assert.assertEquals(0, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(0, vmScheduleRepository.findAll().size());
 
 		// Persist again the schedule without involving Quartz
 		persistEntities("csv", new Class[] { VmSchedule.class }, StandardCharsets.UTF_8.name());
-		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(1, vmScheduleRepository.findAll().size());
 		resource.afterPropertiesSet();
-		Assert.assertEquals(1, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(1, vmScheduleRepository.findAll().size());
 
 		// Remove all triggers of the subscription
 		resource.unscheduleAll(subscription);
-		Assert.assertEquals(0, vmScheduleRepository.findAll().size());
+		Assertions.assertEquals(0, vmScheduleRepository.findAll().size());
 	}
 
 	@Test
 	public void getKey() {
-		Assert.assertEquals("service:vm", resource.getKey());
+		Assertions.assertEquals("service:vm", resource.getKey());
 	}
 
 	@Test
 	public void enumVmStatus() {
-		Assert.assertEquals("SUSPENDED", VmStatus.values()[VmStatus.valueOf("SUSPENDED").ordinal()].name());
+		Assertions.assertEquals("SUSPENDED", VmStatus.values()[VmStatus.valueOf("SUSPENDED").ordinal()].name());
 	}
 
 	@Test
@@ -447,8 +454,9 @@ public class VmResourceTest extends AbstractServerTest {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		((StreamingOutput) resource.downloadReport(subscription, "file1").getEntity()).write(output);
 		List<String> lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
-		Assert.assertEquals(1, lines.size());
-		Assert.assertEquals("dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;trigger;succeed", lines.get(0));
+		Assertions.assertEquals(1, lines.size());
+		Assertions.assertEquals("dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;trigger;succeed",
+				lines.get(0));
 		output.close();
 
 		// Manual execution
@@ -465,18 +473,18 @@ public class VmResourceTest extends AbstractServerTest {
 		output = new ByteArrayOutputStream();
 		((StreamingOutput) resource.downloadReport(subscription, "file1").getEntity()).write(output);
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
-		Assert.assertEquals(3, lines.size());
-		Assert.assertTrue(lines.get(1).endsWith(";gfi-gstack;gStack;service:vm:test:test;fdaugan;true"));
-		Assert.assertTrue(lines.get(1).contains(";OFF;"));
-		Assert.assertTrue(lines.get(2).endsWith(";gfi-gstack;gStack;service:vm:test:test;_system;true"));
-		Assert.assertTrue(lines.get(2).contains(";ON;"));
-		Assert.assertEquals(2, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
-		Assert.assertEquals(subscription,
+		Assertions.assertEquals(3, lines.size());
+		Assertions.assertTrue(lines.get(1).endsWith(";gfi-gstack;gStack;service:vm:test:test;fdaugan;true"));
+		Assertions.assertTrue(lines.get(1).contains(";OFF;"));
+		Assertions.assertTrue(lines.get(2).endsWith(";gfi-gstack;gStack;service:vm:test:test;_system;true"));
+		Assertions.assertTrue(lines.get(2).contains(";ON;"));
+		Assertions.assertEquals(2, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
+		Assertions.assertEquals(subscription,
 				vmExecutionRepository.findAllBy("subscription.id", subscription).get(0).getSubscription().getId().intValue());
 
 		// Delete includes executions
 		resource.delete(subscription, true);
-		Assert.assertEquals(0, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
+		Assertions.assertEquals(0, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
 
 	}
 
@@ -496,14 +504,14 @@ public class VmResourceTest extends AbstractServerTest {
 		vm.setStatus(VmStatus.SUSPENDED);
 		vm.setNetworks(Collections.singletonList(new VmNetwork("type", "1.2.3.4", "dns")));
 		vm.setName("name");
-		Assert.assertEquals("name", vm.getName());
-		Assert.assertEquals("os", vm.getOs());
-		Assert.assertEquals(1, vm.getNetworks().size());
-		Assert.assertEquals("dns", vm.getNetworks().get(0).getDns());
-		Assert.assertEquals("type", vm.getNetworks().get(0).getType());
-		Assert.assertEquals("1.2.3.4", vm.getNetworks().get(0).getIp());
-		Assert.assertEquals(2048, vm.getRam());
-		Assert.assertEquals(1, vm.getCpu());
-		Assert.assertEquals(VmStatus.SUSPENDED, vm.getStatus());
+		Assertions.assertEquals("name", vm.getName());
+		Assertions.assertEquals("os", vm.getOs());
+		Assertions.assertEquals(1, vm.getNetworks().size());
+		Assertions.assertEquals("dns", vm.getNetworks().get(0).getDns());
+		Assertions.assertEquals("type", vm.getNetworks().get(0).getType());
+		Assertions.assertEquals("1.2.3.4", vm.getNetworks().get(0).getIp());
+		Assertions.assertEquals(2048, vm.getRam());
+		Assertions.assertEquals(1, vm.getCpu());
+		Assertions.assertEquals(VmStatus.SUSPENDED, vm.getStatus());
 	}
 }

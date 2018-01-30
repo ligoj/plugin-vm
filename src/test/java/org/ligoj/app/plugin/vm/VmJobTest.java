@@ -1,7 +1,7 @@
 package org.ligoj.app.plugin.vm;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.quartz.TriggerKey;
@@ -13,17 +13,17 @@ public class VmJobTest {
 
 	@Test
 	public void getSubscription() {
-		Assert.assertEquals(999, VmJob.getSubscription(new TriggerKey("10-999")));
+		Assertions.assertEquals(999, VmJob.getSubscription(new TriggerKey("10-999")));
 	}
 
 	@Test
 	public void getSchedule() {
-		Assert.assertEquals(10, VmJob.getSchedule(new TriggerKey("10-999")));
+		Assertions.assertEquals(10, VmJob.getSchedule(new TriggerKey("10-999")));
 	}
 
 	@Test
 	public void parse() {
-		Assert.assertArrayEquals(new Object[2], VmJob.parse("any-OFF"));
+		Assertions.assertArrayEquals(new Object[2], VmJob.parse("any-OFF"));
 	}
 
 	@Test
@@ -33,6 +33,6 @@ public class VmJobTest {
 		final Subscription subscription = new Subscription();
 		subscription.setId(12345);
 		vmSchedule.setSubscription(subscription);
-		Assert.assertEquals("6789-12345", VmJob.format(vmSchedule));
+		Assertions.assertEquals("6789-12345", VmJob.format(vmSchedule));
 	}
 }
