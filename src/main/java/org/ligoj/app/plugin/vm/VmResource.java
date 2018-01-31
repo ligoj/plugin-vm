@@ -115,8 +115,11 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Remove all schedules of this subscription from the current scheduler, then
-	 * from the data base.
+	 * Remove all schedules of this subscription from the current scheduler,
+	 * then from the data base.
+	 * 
+	 * @param subscription
+	 *            The parent subscription holding the schedules.
 	 */
 	protected void unscheduleAll(final int subscription) throws SchedulerException {
 		// Remove current schedules from the memory
@@ -144,8 +147,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Remove all schedules matching the given predicate from the current scheduler,
-	 * then from the data base.
+	 * Remove all schedules matching the given predicate from the current
+	 * scheduler, then from the data base.
 	 */
 	private void unscheduleAll(final Predicate<TriggerKey> predicate) throws SchedulerException {
 		// Remove current schedules from the memory
@@ -190,9 +193,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Execute a {@link VmOperation} to the associated VM and checks its visibility
-	 * against the current principal user. This a synchronous call, but the
-	 * effective execution is delayed.
+	 * Execute a {@link VmOperation} to the associated VM and checks its
+	 * visibility against the current principal user. This a synchronous call,
+	 * but the effective execution is delayed.
 	 * 
 	 * @param subscription
 	 *            The {@link Subscription} identifier associated to the VM.
@@ -208,8 +211,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Execute a {@link VmOperation} to the associated VM. This a synchronous call,
-	 * but the effective execution is delayed.
+	 * Execute a {@link VmOperation} to the associated VM. This a synchronous
+	 * call, but the effective execution is delayed.
 	 * 
 	 * @param subscription
 	 *            The {@link Subscription} associated to the VM.
@@ -325,13 +328,12 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	/**
 	 * Create a new schedule.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to update.
 	 * @param schedule
-	 *            The schedule to save or update. The CRON expression may be either
-	 *            in the 5 either in 6 parts. The optional 6th corresponds to the
-	 *            "seconds" and will be prepended to the expression to conform to
-	 *            Quartz format.
+	 *            The schedule to save or update. The CRON expression may be
+	 *            either in the 5 either in 6 parts. The optional 6th
+	 *            corresponds to the "seconds" and will be prepended to the
+	 *            expression to conform to Quartz format.
+	 * @return The created schedule identifier.
 	 */
 	@POST
 	@Transactional
@@ -342,13 +344,11 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	/**
 	 * Update an existing schedule.
 	 * 
-	 * @param subscription
-	 *            The subscription identifier to update.
 	 * @param schedule
-	 *            The schedule to save or update. The CRON expression may be either
-	 *            in the 5 either in 6 parts. The optional 6th corresponds to the
-	 *            "seconds" and will be prepended to the expression to conform to
-	 *            Quartz format.
+	 *            The schedule to save or update. The CRON expression may be
+	 *            either in the 5 either in 6 parts. The optional 6th
+	 *            corresponds to the "seconds" and will be prepended to the
+	 *            expression to conform to Quartz format.
 	 */
 	@PUT
 	@Transactional
@@ -393,7 +393,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * Delete the schedule entity. Related subscription's visibility is checked.
 	 * 
 	 * @param schedule
-	 *            The schedule to delete.
+	 *            The schedule identifier to delete.
 	 */
 	@DELETE
 	@Path("{id:\\d+}")
