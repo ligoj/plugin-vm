@@ -1,6 +1,7 @@
 define({
 	"service:vm": "Virtualisation",
 	"service:vm:network": "Réseau",
+	"service:vm:status": "Statut",
 	"service:vm:powered_off": "Eteinte",
 	"service:vm:powered_on": "Allumée",
 	"service:vm:suspended": "Suspendue",
@@ -17,6 +18,9 @@ define({
 	"service:vm:shutdown": "Arrêter",
 	"service:vm:shutdown-help": "Un arrêt système de la VM : menu démarrer / arrêter",
 	"service:vm:operation": "Opération",
+	"service:vm:operation-executed-help": "Les opérations demandées sont adaptées au status de la VM au moment du déclenchement",
+	"service:vm:operation-requested": "Demandée",
+	"service:vm:operation-executed": "Exécutée",
 	"service:vm:schedule": "Programmer",
 	"service:vm:cron": "Expression CRON",
 	"service:vm:schedule-next": "Prochaine exécution",

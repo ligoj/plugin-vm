@@ -6,15 +6,16 @@
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="vm-schedule-tab">
 			<form id="subscribe-configuration-vm" class="form-horizontal">
+				<br/>
 				<div class="alert alert-info" role="alert">
-					Les modifications sont immédiatement enregistrées. Les opérations sans CRON ne sont pas exécutées. Les opérations demandées sont adaptées au status de la VM au moment du déclenchement <a data-toggle="collapse" href="#news-collapse" aria-controls="news-collapse"> Plus »</a>
+					{{service:vm:operation-executed-help}} <a data-toggle="collapse" href="#news-collapse" aria-controls="news-collapse"> Plus »</a>
 					<div id="news-collapse" class="collapse">
 						<table class="table table-bordered justified">
 							<thead>
 								<tr>
-									<th>Status</th>
-									<th>Operation demandée</th>
-									<th>Operation exécutée</th>
+									<th>{{service:vm:status}}</th>
+									<th>{{service:vm:operation-requested}}</th>
+									<th>{{service:vm:operation-executed}}</th>
 								</tr>
 							</thead>
 							<tbody>
