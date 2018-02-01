@@ -15,6 +15,8 @@
 [Ligoj](https://github.com/ligoj/ligoj) VM service plugin
 Provides the following services :
 - ON, OFF, REBOOT, RESTART, SUSPEND, RESUME
+- Snapshot
+- Shcedule operation
 - Each plugin implements this service
 
 Dashboard features :
