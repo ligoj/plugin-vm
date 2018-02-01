@@ -53,3 +53,10 @@ th.next-execution {
 .vm-snapshot-create+.dropdown-menu {
 	min-width: 200px;
 }
+.schedule-table-mapping {
+	background-color: #eeeeee;
+	color: #333333;
+}
+.schedule-table-mapping thead{
+	background-color: #afafaf;
+}
