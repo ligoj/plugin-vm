@@ -3,7 +3,7 @@ package org.ligoj.app.plugin.vm.snapshot;
 import java.util.Date;
 import java.util.List;
 
-import org.ligoj.app.iam.UserOrg;
+import org.ligoj.app.iam.SimpleUser;
 import org.ligoj.bootstrap.core.DescribedBean;
 
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class Snapshot extends DescribedBean<String> {
 	 * User requesting this snapshot. May be <code>null</code> when system requested
 	 * it.
 	 */
-	private UserOrg author;
+	private SimpleUser author;
 
 	/**
 	 * Creation date.
