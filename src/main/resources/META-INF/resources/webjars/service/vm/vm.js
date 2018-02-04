@@ -484,15 +484,14 @@ define(function () {
 		 */
 		restoreSnapshot: function (snapshot) {
 			$.ajax({
-				type: schedule.id ? 'PUT' : 'POST',
-				url: REST_PATH + 'service/vm',
+				type: 'PUT',
+				url: REST_PATH + 'service/vm/' + subscription + '/snapshot/' + snapshot.id,
 				dataType: 'json',
 				contentType: 'application/json',
-				data: JSON.stringify(schedule),
 				success: function (data) {
-					notifyManager.notify(Handlebars.compile(current.$messages[schedule.id ? 'updated' : 'created'])((schedule.id || data) + ' : ' + schedule.operation.toUpperCase()));
+					notifyManager.notify(Handlebars.compile(current.$messages['service:vm:restoring'])([snapshot.name, snapshot.id]));
 					current.reload();
-					_('vm-schedules-popup').modal('hide');
+					_('vm-snapshot-popup').modal('hide');
 				}
 			});
 		},
@@ -597,8 +596,8 @@ define(function () {
 				_('vm-snapshots').DataTable().ajax.reload();
 			} else {
 				// Update the tooltip for the progress
-				var status = 'Phase: ' + status.phase + '<br/>Started: ' + formatManager.formatDateTime(status.start) + (status.snapshotInternalId ? '<br/>Internal reference:' + status.snapshotInternalId : '');
-				current.$super('$view').find('.vm-snapshot-create').attr('title', status);
+				var statusText = 'Phase: ' + status.phase + '<br/>Started: ' + formatManager.formatDateTime(status.start) + (status.snapshotInternalId ? '<br/>Internal reference:' + status.snapshotInternalId : '');
+				current.$super('$view').find('.vm-snapshot-create').attr('title', statusText);
 			}
 		},
 

@@ -24,5 +24,5 @@ public class VmConfigurationVo {
 	/**
 	 * When <code>true</code> the related tool supports snapshot.
 	 */
-	boolean supportSnapshot;
+	private boolean supportSnapshot;
 }
