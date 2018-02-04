@@ -504,6 +504,8 @@ public class VmResourceTest extends AbstractServerTest {
 		vm.setStatus(VmStatus.SUSPENDED);
 		vm.setNetworks(Collections.singletonList(new VmNetwork("type", "1.2.3.4", "dns")));
 		vm.setName("name");
+		Assertions.assertTrue(vm.isBusy());
+		Assertions.assertTrue(vm.isDeployed());
 		Assertions.assertEquals("name", vm.getName());
 		Assertions.assertEquals("os", vm.getOs());
 		Assertions.assertEquals(1, vm.getNetworks().size());
