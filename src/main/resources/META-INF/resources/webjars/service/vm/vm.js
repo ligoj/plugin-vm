@@ -99,12 +99,7 @@ define(function () {
 					data: 'volumes',
 					render: function (volumes, mode) {
 						var total = 0;
-						if (volumes.length === 0) {
-							// No disk...
-							if (mode === 'display') {
-								return current.$messages['service:vm:snapshot-no-volume'];
-							}
-						} else {
+						if (volumes && volumes.length) {
 							// Add volume details : size, name, id
 							var result = ' <span class="small">(' + volumes.length + ')</span> ';
 							for (var index in volumes) {
@@ -115,6 +110,11 @@ define(function () {
 							if (mode === 'display') {
 								return formatManager.formatSize(total * 1024 * 1024 * 1024, 3) + result;
 							}
+						} else {
+							// No disk...
+							if (mode === 'display') {
+								return current.$messages['service:vm:snapshot-no-volume'];
+							}
 						}
 						return total;
 					}
@@ -122,7 +122,14 @@ define(function () {
 					data: 'statusText',
 					render: function (status, mode, data) {
 						if (mode === 'display') {
-							return (data.pending ? '<i class="fa fa-circle-o-notch fa-spin"></i> ' : '<i class="fa fa-check"></i> ') + status;
+							status = (status && current.$messages[status]) || status;
+							if (data.pending) {
+								return '<i class="fa fa-circle-o-notch fa-spin"></i> ' + status;
+							}
+							if (data.available) {
+								return '<i class="fa fa-check text-success"></i> ' + status;
+							}
+							return '<i class="fa fa-times text-danger"></i> ' + status;
 						}
 						return status;
 					}

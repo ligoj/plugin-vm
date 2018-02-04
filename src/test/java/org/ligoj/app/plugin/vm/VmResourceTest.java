@@ -32,6 +32,7 @@ import org.ligoj.app.plugin.vm.model.VmExecution;
 import org.ligoj.app.plugin.vm.model.VmOperation;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.app.plugin.vm.model.VmStatus;
+import org.ligoj.app.plugin.vm.snapshot.Snapshotting;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.DateUtils;
 import org.ligoj.bootstrap.core.SpringUtils;
@@ -261,9 +262,20 @@ public class VmResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("0 0 0 1 1 ? 2050", schedules.get(0).getCron());
 		Assertions.assertNotNull(schedules.get(0).getId());
 		Assertions.assertEquals(VmOperation.OFF, schedules.get(0).getOperation());
+		Assertions.assertFalse(configuration.isSupportSnapshot());
 
 		// Coverage only
 		Assertions.assertEquals(VmOperation.OFF, VmOperation.values()[VmOperation.valueOf(VmOperation.OFF.name()).ordinal()]);
+	}
+
+	@Test
+	public void getConfigurationSupportSnapshot() {
+		final VmResource resource = new VmResource();
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
+		resource.locator = Mockito.mock(ServicePluginLocator.class);
+		Mockito.doReturn(Mockito.mock(Snapshotting.class)).when(resource.locator).getResource("service:vm:test:test", Snapshotting.class);
+
+		Assertions.assertTrue(resource.getConfiguration(subscription).isSupportSnapshot());
 	}
 
 	@Test

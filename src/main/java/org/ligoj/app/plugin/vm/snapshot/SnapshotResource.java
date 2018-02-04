@@ -94,7 +94,7 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
 			securityHelper.setUserName(user);
-			snap.snapshot(subscription, subscriptionResource.getParametersNoCheck(subscription), stop);
+			snap.snapshot(subscription, subscriptionResource.getParametersNoCheck(subscription), task);
 			log.info("Snapshot requested for subscription {} finished", subscription);
 			return null;
 		});
@@ -139,9 +139,13 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 
 	@Override
 	public boolean isFinished(final VmSnapshotStatus task) {
-		// Complete the status
-		getSnapshot(subscriptionResource.checkVisibleSubscription(task.getLocked().getId()).getNode()).completeStatus(task);
-		return task.isFinished() && task.isFinishedRemote();
+		// Complete the status for the not completed tasks
+		if (task.isFailed()) {
+			task.setFinishedRemote(true);
+		} else if (!task.isFinishedRemote()) {
+			getSnapshot(subscriptionResource.checkVisibleSubscription(task.getLocked().getId()).getNode()).completeStatus(task);
+		}
+		return task.isFinishedRemote();
 	}
 
 }
