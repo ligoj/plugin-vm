@@ -10,7 +10,6 @@ import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.quartz.TriggerKey;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
@@ -30,7 +29,7 @@ public class VmJob extends QuartzJobBean {
 	private static final String TRIGGER_ID_PARSER = "{0,number,integer}-{1,number,integer}";
 
 	@Override
-	protected void executeInternal(final JobExecutionContext arg0) throws JobExecutionException {
+	protected void executeInternal(final JobExecutionContext arg0) {
 		// Extract the job data to execute the operation
 		final int schedule = arg0.getMergedJobDataMap().getInt("schedule");
 		final ApplicationContext context = ObjectUtils.defaultIfNull((ApplicationContext) arg0.getMergedJobDataMap().get("context"),

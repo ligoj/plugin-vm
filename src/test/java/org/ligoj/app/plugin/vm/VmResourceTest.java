@@ -233,14 +233,14 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void createScheduleInvalidCron() throws Exception {
+	public void createScheduleInvalidCron() {
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
 			resource.createSchedule(newSchedule("ERROR_CRON", VmOperation.OFF));
 		}), "cron", "vm-cron");
 	}
 
 	@Test
-	public void createScheduleInvalidCronEverySecond() throws Exception {
+	public void createScheduleInvalidCronEverySecond() {
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
 			resource.createSchedule(newSchedule("* * * ? * *", VmOperation.OFF));
 		}), "cron", "vm-cron-second");

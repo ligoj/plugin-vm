@@ -76,7 +76,7 @@ public class SnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void completeStatus() throws Exception {
+	public void completeStatus() {
 		new Snapshotting() {
 
 			@Override
@@ -158,7 +158,7 @@ public class SnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getTask() throws Exception {
+	public void getTask() {
 		// Add a running task
 		final VmSnapshotStatus oldTask = new VmSnapshotStatus();
 		oldTask.setAuthor("junit");
@@ -173,7 +173,7 @@ public class SnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getTaskNull() throws Exception {
+	public void getTaskNull() {
 		mockProxy();
 		final VmSnapshotStatus task = resource.getTask(subscription);
 		Mockito.verify(service, Mockito.never()).completeStatus(ArgumentMatchers.any(VmSnapshotStatus.class));
@@ -181,14 +181,14 @@ public class SnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void isFinished() throws Exception {
+	public void isFinished() {
 		final VmSnapshotStatus task = new VmSnapshotStatus();
 		task.setFinishedRemote(true);
 		Assertions.assertTrue(resource.isFinished(task));
 	}
 
 	@Test
-	public void isFinishedFailed() throws Exception {
+	public void isFinishedFailed() {
 		final VmSnapshotStatus task = new VmSnapshotStatus();
 		task.setFinishedRemote(true);
 		task.setFailed(true);
@@ -196,7 +196,7 @@ public class SnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void isFinishedNotFinishedRemote() throws Exception {
+	public void isFinishedNotFinishedRemote() {
 		final VmSnapshotStatus task = new VmSnapshotStatus();
 		task.setLocked(subscriptionRepository.findOneExpected(subscription));
 		Assertions.assertFalse(resource.isFinished(task));
