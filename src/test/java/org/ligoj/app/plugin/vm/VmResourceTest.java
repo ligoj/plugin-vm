@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -255,11 +256,12 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getConfiguration() {
+	public void getConfiguration() throws ParseException {
 		final VmConfigurationVo configuration = resource.getConfiguration(subscription);
 		final List<VmScheduleVo> schedules = configuration.getSchedules();
 		Assertions.assertEquals(1, schedules.size());
 		Assertions.assertEquals("0 0 0 1 1 ? 2050", schedules.get(0).getCron());
+		Assertions.assertEquals(getDate(2050, 1, 1, 0, 0, 0), schedules.get(0).getNext());
 		Assertions.assertNotNull(schedules.get(0).getId());
 		Assertions.assertEquals(VmOperation.OFF, schedules.get(0).getOperation());
 		Assertions.assertFalse(configuration.isSupportSnapshot());
@@ -269,7 +271,7 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getConfigurationSupportSnapshot() {
+	public void getConfigurationSupportSnapshot() throws ParseException {
 		final VmResource resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
@@ -501,9 +503,8 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	/**
-	 * Very dummy and ugly test, not very proud. But for now the {@link Vm}
-	 * class is only in the contract of {@link VmServicePlugin} and without
-	 * usage.
+	 * Very dummy and ugly test, not very proud. But for now the {@link Vm} class is
+	 * only in the contract of {@link VmServicePlugin} and without usage.
 	 */
 	@Test
 	public void testVm() {

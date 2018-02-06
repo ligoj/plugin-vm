@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -251,19 +252,21 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	@Override
 	@Transactional
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
-	public VmConfigurationVo getConfiguration(@PathParam("subscription") final int subscription) {
+	public VmConfigurationVo getConfiguration(@PathParam("subscription") final int subscription) throws ParseException {
 		// Check the subscription is visible
 		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
 
 		// Get the details
 		final VmConfigurationVo result = new VmConfigurationVo();
 		final List<VmScheduleVo> scedules = new ArrayList<>();
+		final Date now = DateUtils.newCalendar().getTime();
 		for (final VmSchedule schedule : vmScheduleRepository.findBySubscription(subscription)) {
 			// Copy basic attributes
 			final VmScheduleVo vo = new VmScheduleVo();
 			vo.setCron(schedule.getCron());
 			vo.setOperation(schedule.getOperation());
 			vo.setId(schedule.getId());
+			vo.setNext(new CronExpression(schedule.getCron()).getNextValidTimeAfter(now));
 			scedules.add(vo);
 		}
 		result.setSchedules(scedules);
@@ -284,7 +287,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	@Path("{subscription:\\d+}/{file:.*.csv}")
+	@Path("{subscription:\\d+}/{file:history-.*.csv}")
 	public Response downloadReport(@PathParam("subscription") final int subscription, @PathParam("file") final String file) {
 		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
 		return AbstractToolPluginResource.download(o -> writeReport(entity, o), file).build();

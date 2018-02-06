@@ -231,7 +231,7 @@ define(function () {
 						return prettyCron.toString(data.cron, true);
 					}
 				}, {
-					data: null,
+					data: 'next',
 					className: 'vm-schedules-next responsive-datetime',
 					render: function (_i, _j, data) {
 						return moment(later.schedule(later.parse.cron(data.cron, true)).next(1)).format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss');

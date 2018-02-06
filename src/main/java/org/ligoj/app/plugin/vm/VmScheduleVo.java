@@ -1,5 +1,7 @@
 package org.ligoj.app.plugin.vm;
 
+import java.util.Date;
+
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -38,5 +40,10 @@ public class VmScheduleVo {
 	 */
 	@NotNull
 	private Integer subscription;
+	
+	/**
+	 * The next scheduled execution date from the server side.
+	 */
+	private Date next;
 
 }
