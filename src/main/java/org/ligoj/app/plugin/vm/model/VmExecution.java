@@ -5,6 +5,8 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 
 import org.ligoj.app.model.Subscription;
@@ -26,6 +28,7 @@ public class VmExecution extends AbstractPersistable<Integer> {
 	 * Execution date
 	 */
 	@NotNull
+	@Temporal(TemporalType.DATE)
 	private Date date;
 
 	/**
@@ -47,8 +50,7 @@ public class VmExecution extends AbstractPersistable<Integer> {
 	private boolean succeed;
 
 	/**
-	 * The trigger mode, either <code>null</code> when scheduled, either the
-	 * principal identifier.
+	 * The trigger mode, either <code>null</code> when scheduled, either the principal identifier.
 	 */
 	@NotNull
 	private String trigger;
@@ -57,5 +59,16 @@ public class VmExecution extends AbstractPersistable<Integer> {
 	 * The error message. <code>null</code> when succeed.
 	 */
 	private String error;
+
+	/**
+	 * The related VM identifier when the execution has been proceeded. May be <code>null</code> when an error occurs
+	 * before the resolution of the related plug-in implementor.
+	 */
+	private String vm;
+
+	/**
+	 * The optional status text.
+	 */
+	private String statusText;
 
 }

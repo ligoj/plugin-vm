@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
@@ -23,8 +24,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.ligoj.app.api.ConfigurablePlugin;
+import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.vm.dao.VmExecutionRepository;
 import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
@@ -33,6 +36,7 @@ import org.ligoj.app.plugin.vm.model.VmOperation;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.app.plugin.vm.snapshot.Snapshotting;
 import org.ligoj.app.resource.ServicePluginLocator;
+import org.ligoj.app.resource.node.NodeResource;
 import org.ligoj.app.resource.plugin.AbstractServicePlugin;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.SubscriptionResource;
@@ -93,6 +97,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	protected SubscriptionResource subscriptionResource;
 
 	@Autowired
+	protected NodeResource nodeResource;
+
+	@Autowired
 	protected ServicePluginLocator locator;
 
 	@Autowired
@@ -116,8 +123,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Remove all schedules of this subscription from the current scheduler,
-	 * then from the data base.
+	 * Remove all schedules of this subscription from the current scheduler, then from the data base.
 	 * 
 	 * @param subscription
 	 *            The parent subscription holding the schedules.
@@ -131,8 +137,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Remove a schedule of this subscription for a specific operation from the
-	 * current scheduler, then from the data base.
+	 * Remove a schedule of this subscription for a specific operation from the current scheduler, then from the data
+	 * base.
 	 */
 	private void unschedule(final int schedule) throws SchedulerException {
 		unscheduleQuartz(schedule);
@@ -148,8 +154,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Remove all schedules matching the given predicate from the current
-	 * scheduler, then from the data base.
+	 * Remove all schedules matching the given predicate from the current scheduler, then from the data base.
 	 */
 	private void unscheduleAll(final Predicate<TriggerKey> predicate) throws SchedulerException {
 		// Remove current schedules from the memory
@@ -172,9 +177,11 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		final JobDetailImpl object = (JobDetailImpl) vmJobDetailFactoryBean.getObject();
 		object.getJobDataMap().put("vmServicePlugin", this);
 		final Trigger trigger = TriggerBuilder.newTrigger().withIdentity(id, SCHEDULE_TRIGGER_GROUP)
-				.withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCron()).inTimeZone(DateUtils.getApplicationTimeZone()))
+				.withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCron())
+						.inTimeZone(DateUtils.getApplicationTimeZone()))
 				.forJob(object).usingJobData("subscription", schedule.getSubscription().getId())
-				.usingJobData("operation", schedule.getOperation().name()).usingJobData("schedule", schedule.getId()).build();
+				.usingJobData("operation", schedule.getOperation().name()).usingJobData("schedule", schedule.getId())
+				.build();
 
 		// Add this trigger
 		vmSchedulerFactoryBean.getObject().scheduleJob(trigger);
@@ -194,56 +201,77 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Execute a {@link VmOperation} to the associated VM and checks its
-	 * visibility against the current principal user. This a synchronous call,
-	 * but the effective execution is delayed.
+	 * Execute a {@link VmOperation} to the associated VM and checks its visibility against the current principal user.
+	 * This a synchronous call, but the effective execution is delayed.
 	 * 
 	 * @param subscription
 	 *            The {@link Subscription} identifier associated to the VM.
 	 * @param operation
 	 *            the operation to execute.
+	 * @return The execution identifier. Only useful for the correlation. May be <code>null</code> when skipped.
 	 */
 	@POST
 	@Path("{subscription:\\d+}/{operation}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Transactional
-	public void execute(@PathParam("subscription") final int subscription, @PathParam("operation") final VmOperation operation) {
-		execute(subscriptionResource.checkVisibleSubscription(subscription), operation);
+	public Integer execute(@PathParam("subscription") final int subscription,
+			@PathParam("operation") final VmOperation operation) {
+		return execute(subscriptionResource.checkVisibleSubscription(subscription), operation);
 	}
 
 	/**
-	 * Execute a {@link VmOperation} to the associated VM. This a synchronous
-	 * call, but the effective execution is delayed.
+	 * Execute a {@link VmOperation} to the associated VM. This a synchronous call, but the effective execution is
+	 * delayed.
 	 * 
 	 * @param subscription
 	 *            The {@link Subscription} associated to the VM.
 	 * @param operation
 	 *            the operation to execute.
+	 * @return The execution identifier. Only useful for the correlation. May be <code>null</code> when skipped.
 	 */
 	@Transactional
-	public void execute(final Subscription subscription, final VmOperation operation) {
+	public Integer execute(final Subscription subscription, final VmOperation operation) {
 		final String node = subscription.getNode().getId();
 		final String trigger = securityHelper.getLogin();
-		log.info("Operation {} on subscription {}, node {} is requested by {}", operation, subscription.getId(), node, trigger);
-		final VmExecution vmExecution = new VmExecution();
-		vmExecution.setOperation(operation);
-		vmExecution.setSubscription(subscription);
-		vmExecution.setTrigger(trigger);
-		vmExecution.setDate(new Date());
-
+		log.info("Operation {} on subscription {}, node {} is requested by {}", operation, subscription.getId(), node,
+				trigger);
+		final VmExecution execution = new VmExecution();
+		execution.setOperation(operation);
+		execution.setSubscription(subscription);
+		execution.setTrigger(trigger);
+		execution.setDate(new Date());
 		try {
 			// Execute the operation if plug-in still available
-			locator.getResourceExpected(node, VmServicePlugin.class).execute(subscription.getId(), operation);
-			log.info("Operation {} on subscription {}, node {} : succeed", operation, subscription.getId(), node);
-			vmExecution.setSucceed(true);
+			locator.getResourceExpected(node, VmServicePlugin.class).execute(execution);
+			log.info("Operation {} (->{}) on subscription {}, node {} : succeed", operation, execution.getOperation(),
+					subscription.getId(), node);
+			execution.setSucceed(true);
 		} catch (final Exception e) {
-			// Something goes wrong for this VM, this log would be considered
-			// for reporting
-			vmExecution.setError(e.getMessage());
+			// Something goes wrong for this VM, this log would be considered for reporting
+			execution.setError(e.getMessage());
 			log.error("Operation {} on subscription {}, node {} : failed", operation, subscription.getId(), e);
 		} finally {
+			// Save as needed
+			saveAndFlush(execution, operation);
+		}
+		return execution.getId();
+	}
+
+	/**
+	 * Save as needed the given schedule.
+	 * 
+	 * @param execution
+	 *            The execution to persist.
+	 * @param operation
+	 *            The original operation to execute.
+	 */
+	private void saveAndFlush(final VmExecution execution, final VmOperation operation) {
+		// Check this execution has been really been executed
+		if (execution.getOperation() == null) {
+			log.info("Operation {} on subscription {} : skipped", operation, execution.getSubscription().getId());
+		} else {
 			// Persist the execution result
-			vmExecutionRepository.saveAndFlush(vmExecution);
+			vmExecutionRepository.saveAndFlush(execution);
 		}
 	}
 
@@ -277,7 +305,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Return the full execution report for the related VM. No time limit.
+	 * Return the execution report of VM related to the given subscription.
 	 * 
 	 * @param subscription
 	 *            The related subscription.
@@ -288,20 +316,24 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("{subscription:\\d+}/{file:history-.*.csv}")
-	public Response downloadReport(@PathParam("subscription") final int subscription, @PathParam("file") final String file) {
-		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
-		return AbstractToolPluginResource.download(o -> writeReport(entity, o), file).build();
+	public Response downloadHistoryReport(@PathParam("subscription") final int subscription,
+			@PathParam("file") final String file) {
+		subscriptionResource.checkVisibleSubscription(subscription);
+		return AbstractToolPluginResource
+				.download(o -> writeHistory(o, vmExecutionRepository.findAllBy("subscription.id", subscription)), file)
+				.build();
 	}
 
 	/**
-	 * Write all execution related to given subscription, from the oldest to the
-	 * newest.
+	 * Write all executions related to given subscription, from the oldest to the newest.
 	 */
-	private void writeReport(final Subscription subscription, final OutputStream output) throws IOException {
+	private void writeHistory(final OutputStream output, Collection<VmExecution> executions) throws IOException {
 		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
 		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
-		writer.write("dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;trigger;succeed");
-		for (final VmExecution execution : vmExecutionRepository.findAllBy("subscription.id", subscription.getId())) {
+		writer.write(
+				"dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;vm;statusText;trigger;succeed");
+		for (final VmExecution execution : executions) {
+			final Project project = execution.getSubscription().getProject();
 			writer.write('\n');
 			writer.write(df.format(execution.getDate()));
 			writer.write(';');
@@ -309,15 +341,19 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 			writer.write(';');
 			writer.write(execution.getOperation().name());
 			writer.write(';');
-			writer.write(String.valueOf(subscription.getId()));
+			writer.write(String.valueOf(execution.getSubscription().getId()));
 			writer.write(';');
-			writer.write(String.valueOf(subscription.getProject().getId()));
+			writer.write(String.valueOf(project.getId()));
 			writer.write(';');
-			writer.write(subscription.getProject().getPkey());
+			writer.write(project.getPkey());
 			writer.write(';');
-			writer.write(subscription.getProject().getName().replaceAll("\"", "'"));
+			writer.write(project.getName().replaceAll("\"", "'"));
 			writer.write(';');
-			writer.write(subscription.getNode().getId());
+			writer.write(execution.getSubscription().getNode().getId());
+			writer.write(';');
+			writer.write(StringUtils.defaultString(execution.getVm(), ""));
+			writer.write(';');
+			writer.write(StringUtils.defaultString(execution.getStatusText(), ""));
 			writer.write(';');
 			writer.write(execution.getTrigger());
 			writer.write(';');
@@ -332,10 +368,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * Create a new schedule.
 	 * 
 	 * @param schedule
-	 *            The schedule to save or update. The CRON expression may be
-	 *            either in the 5 either in 6 parts. The optional 6th
-	 *            corresponds to the "seconds" and will be prepended to the
-	 *            expression to conform to Quartz format.
+	 *            The schedule to save or update. The CRON expression may be either in the 5 either in 6 parts. The
+	 *            optional 6th corresponds to the "seconds" and will be prepended to the expression to conform to Quartz
+	 *            format.
 	 * @return The created schedule identifier.
 	 */
 	@POST
@@ -348,10 +383,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * Update an existing schedule.
 	 * 
 	 * @param schedule
-	 *            The schedule to save or update. The CRON expression may be
-	 *            either in the 5 either in 6 parts. The optional 6th
-	 *            corresponds to the "seconds" and will be prepended to the
-	 *            expression to conform to Quartz format.
+	 *            The schedule to save or update. The CRON expression may be either in the 5 either in 6 parts. The
+	 *            optional 6th corresponds to the "seconds" and will be prepended to the expression to conform to Quartz
+	 *            format.
 	 */
 	@PUT
 	@Transactional
