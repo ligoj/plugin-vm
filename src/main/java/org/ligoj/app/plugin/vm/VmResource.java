@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -331,7 +334,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
 		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
 		writer.write(
-				"dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;vm;statusText;trigger;succeed");
+				"dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;vm;trigger;succeed;statusText;errorText");
 		for (final VmExecution execution : executions) {
 			final Project project = execution.getSubscription().getProject();
 			writer.write('\n');
@@ -352,16 +355,111 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 			writer.write(execution.getSubscription().getNode().getId());
 			writer.write(';');
 			writer.write(StringUtils.defaultString(execution.getVm(), ""));
-			writer.write(';');
-			writer.write(StringUtils.defaultString(execution.getStatusText(), ""));
-			writer.write(';');
-			writer.write(execution.getTrigger());
-			writer.write(';');
-			writer.write(String.valueOf(execution.isSucceed()));
+			writeExecutionStatus(writer, execution);
 		}
 
 		// Ensure buffer is flushed
 		writer.flush();
+	}
+
+	/**
+	 * Return all configured schedules report of all VM related to a a visible subscription related to the given node.
+	 * 
+	 * @param node
+	 *            The related node.
+	 * @param file
+	 *            The requested file name.
+	 * @return The download stream.
+	 */
+	@GET
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Path("{node:service:.+}/{file:schedules-.*.csv}")
+	public Response downloadNodeSchedulesReport(@PathParam("node") final String node,
+			@PathParam("file") final String file) {
+		// Get all visible schedules linked to this node
+		final List<VmSchedule> schedules = vmScheduleRepository.findAllByNode(node, securityHelper.getLogin());
+
+		// Get all last execution related to given node, Key is the subscription identifier
+		final Map<Integer, VmExecution> lastExecutions = vmExecutionRepository.findAllByNodeLast(node).stream()
+				.collect(Collectors.toMap(e -> e.getSubscription().getId(), Function.identity()));
+
+		// Get all last executions of all schedules
+		return AbstractToolPluginResource.download(o -> writeSchedules(o, schedules, lastExecutions), file).build();
+	}
+
+	/**
+	 * Write all schedules.
+	 */
+	private void writeSchedules(final OutputStream output, Collection<VmSchedule> schedules,
+			final Map<Integer, VmExecution> lastExecutions) throws IOException {
+		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
+		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
+		final Date now = DateUtils.newCalendar().getTime();
+		writer.write(
+				"operation;subscription;project;projectKey;projectName;node;vm;lastDateHMS;lastTimestamp;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp");
+		for (final VmSchedule schedule : schedules) {
+			// The last execution of the related schedule
+			final VmExecution execution = lastExecutions.get(schedule.getSubscription().getId());
+
+			final Project project = schedule.getSubscription().getProject();
+			writer.write('\n');
+			writer.write(schedule.getOperation().name());
+			writer.write(';');
+			writer.write(String.valueOf(schedule.getSubscription().getId()));
+			writer.write(';');
+			writer.write(String.valueOf(project.getId()));
+			writer.write(';');
+			writer.write(project.getPkey());
+			writer.write(';');
+			writer.write(project.getName().replaceAll("\"", "'"));
+			writer.write(';');
+			writer.write(schedule.getSubscription().getNode().getId());
+			if (execution == null) {
+				writer.write(";;;;;;;");
+			} else {
+				// Last execution
+				writer.write(';');
+				writer.write(StringUtils.defaultString(execution.getVm(),""));
+				writer.write(';');
+				writer.write(df.format(execution.getDate()));
+				writer.write(';');
+				writer.write(String.valueOf(execution.getDate().getTime()));
+				writeExecutionStatus(writer, execution);
+			}
+
+			// Next execution
+			try {
+				final Date next = new CronExpression(schedule.getCron()).getNextValidTimeAfter(now);
+				writer.write(';');
+				writer.write(df.format(next));
+				writer.write(';');
+				writer.write(String.valueOf(next.getTime()));
+			} catch (final ParseException pe) {
+				// Non blocking error
+				log.error("Invalid CRON expression {}", schedule.getCron());
+				writer.write(";ERROR;ERROR");
+			}
+		}
+
+		// Ensure buffer is flushed
+		writer.flush();
+	}
+
+	/**
+	 * Write <code>trigger;succeed;statusText;errorText</code> execution values.
+	 * 
+	 * @throws IOException
+	 *             When could not write the execution values.
+	 */
+	private void writeExecutionStatus(final Writer writer, final VmExecution execution) throws IOException {
+		writer.write(';');
+		writer.write(execution.getTrigger());
+		writer.write(';');
+		writer.write(String.valueOf(execution.isSucceed()));
+		writer.write(';');
+		writer.write(StringUtils.defaultString(execution.getStatusText(), ""));
+		writer.write(';');
+		writer.write(StringUtils.defaultString(execution.getError(), ""));
 	}
 
 	/**

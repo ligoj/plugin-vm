@@ -253,11 +253,34 @@ define(function () {
 					target: '#vm-schedules-popup',
 					className: 'btn-success btn-raised'
 				}, {
-					// Add history download button
-					extend: 'link',
-					text: current.$messages['service:vm:history'],
-					href: REST_PATH + 'service/vm/' + current.model.subscription + '/history-' + current.model.subscription + '.csv',
-					attr: 'download'
+					extend: 'collection',
+					text: current.$messages['service:vm:schedule:reports'],
+					autoClose: true,
+					buttons: [{
+						// Add history download button
+						'extend': 'dropdown-link',
+						'text': current.$messages['service:vm:schedule:reports:executions'],
+						'attr': {
+							'title': current.$messages['service:vm:schedule:reports:schedules-help'],
+							'data-toggle': 'tooltip'
+						},
+						'link-attr': {
+							'href': REST_PATH + 'service/vm/' + current.model.subscription + '/history-' + current.model.subscription + '.csv',
+							'download': 'download'
+						}
+					}, {
+						// Add schedules history download button
+						extend: 'dropdown-link',
+						text: current.$messages['service:vm:schedule:reports:schedules'],
+						attr: {
+							'title': current.$messages['service:vm:schedule:reports:schedules-help'],
+							'data-toggle': 'tooltip'
+						},
+						'link-attr': {
+							'href': REST_PATH + 'service/vm/' + current.model.node.id + '/schedules-' + current.model.node.id.replace(/:/g, '-') + '.csv',
+							'download': 'download'
+						}
+					}]
 				}]
 			});
 		},

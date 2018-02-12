@@ -484,7 +484,6 @@ public class VmResourceTest extends AbstractServerTest {
 				argument.setOperation(operation.get());
 				return true;
 			}
-
 		}));
 
 		// Report without executions
@@ -493,7 +492,7 @@ public class VmResourceTest extends AbstractServerTest {
 		List<String> lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(1, lines.size());
 		Assertions.assertEquals(
-				"dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;vm;statusText;trigger;succeed",
+				"dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;vm;trigger;succeed;statusText;errorText",
 				lines.get(0));
 		output.close();
 
@@ -521,9 +520,9 @@ public class VmResourceTest extends AbstractServerTest {
 		((StreamingOutput) resource.downloadHistoryReport(subscription, "file1").getEntity()).write(output);
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(3, lines.size());
-		Assertions.assertTrue(lines.get(1).endsWith(";gfi-gstack;gStack;service:vm:test:test;;status1;fdaugan;true"));
+		Assertions.assertTrue(lines.get(1).endsWith(";gfi-gstack;gStack;service:vm:test:test;;fdaugan;true;status1;"));
 		Assertions.assertTrue(lines.get(1).contains(";OFF;"));
-		Assertions.assertTrue(lines.get(2).endsWith(";gfi-gstack;gStack;service:vm:test:test;vm1;;_system;true"));
+		Assertions.assertTrue(lines.get(2).endsWith(";gfi-gstack;gStack;service:vm:test:test;vm1;_system;true;;"));
 		Assertions.assertTrue(lines.get(2).contains(";SHUTDOWN;"));
 		Assertions.assertEquals(2, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
 		Assertions.assertEquals(subscription, vmExecutionRepository.findAllBy("subscription.id", subscription).get(0)
@@ -532,10 +531,11 @@ public class VmResourceTest extends AbstractServerTest {
 		// Delete includes executions
 		resource.delete(subscription, true);
 		Assertions.assertEquals(0, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
+
 	}
 
 	@Test
-	public void downloadHistoryReport2() throws Exception {
+	public void downloadNodeSchedulesReport() throws Exception {
 		final VmResource resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		resource.locator = mockServicePluginLocator;
@@ -553,12 +553,17 @@ public class VmResourceTest extends AbstractServerTest {
 
 		// Report without executions
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		((StreamingOutput) resource.downloadHistoryReport(subscription, "file1").getEntity()).write(output);
+		((StreamingOutput) resource.downloadNodeSchedulesReport("service:vm:test", "file1").getEntity()).write(output);
 		List<String> lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
-		Assertions.assertEquals(1, lines.size());
+		Assertions.assertEquals(2, lines.size());
 		Assertions.assertEquals(
-				"dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;vm;statusText;trigger;succeed",
+				"operation;subscription;project;projectKey;projectName;node;vm;lastDateHMS;lastTimestamp;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp",
 				lines.get(0));
+
+		// No last execution available
+		Assertions.assertTrue(lines.get(1)
+				.endsWith(";gfi-gstack;gStack;service:vm:test:test;;;;;;;;2050/01/01 00:00:00;2524604400000"));
+		Assertions.assertTrue(lines.get(1).startsWith("OFF;"));
 		output.close();
 
 		// Manual execution
@@ -580,23 +585,30 @@ public class VmResourceTest extends AbstractServerTest {
 		// Restore the current user
 		initSpringSecurityContext(getAuthenticationName());
 
-		// Report contains these executions (OFF/SHUTDOWN/[REBOOT = skipped])
+		// Report contains only the last executions (OFF/SHUTDOWN/[REBOOT = skipped])
 		output = new ByteArrayOutputStream();
-		((StreamingOutput) resource.downloadHistoryReport(subscription, "file1").getEntity()).write(output);
+		((StreamingOutput) resource.downloadNodeSchedulesReport("service:vm:test", "file1").getEntity()).write(output);
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
-		Assertions.assertEquals(3, lines.size());
-		Assertions.assertTrue(lines.get(1).endsWith(";gfi-gstack;gStack;service:vm:test:test;;status1;fdaugan;true"));
-		Assertions.assertTrue(lines.get(1).contains(";OFF;"));
-		Assertions.assertTrue(lines.get(2).endsWith(";gfi-gstack;gStack;service:vm:test:test;vm1;;_system;true"));
-		Assertions.assertTrue(lines.get(2).contains(";SHUTDOWN;"));
-		Assertions.assertEquals(2, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
-		Assertions.assertEquals(subscription, vmExecutionRepository.findAllBy("subscription.id", subscription).get(0)
-				.getSubscription().getId().intValue());
+		Assertions.assertEquals(2, lines.size());
 
-		// Delete includes executions
-		resource.delete(subscription, true);
-		Assertions.assertEquals(0, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
+		Assertions.assertTrue(lines.get(1).endsWith(";_system;true;;;2050/01/01 00:00:00;2524604400000"));
+		Assertions.assertTrue(lines.get(1).startsWith("OFF;"));
+		Assertions.assertTrue(lines.get(1).contains(";gfi-gstack;gStack;service:vm:test:test;vm1;"));
 
+		// Next execution where schedule CRON has been updated
+		vmScheduleRepository.findBy("subscription.id", subscription).setCron("INVALID");
+		operation.set(VmOperation.SHUTDOWN);
+		id = resource.execute(entity, VmOperation.ON);
+		vmExecutionRepository.findOneExpected(id).setVm("vm1");
+
+		output = new ByteArrayOutputStream();
+		((StreamingOutput) resource.downloadNodeSchedulesReport("service:vm:test", "file1").getEntity()).write(output);
+		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
+		Assertions.assertEquals(2, lines.size());
+
+		Assertions.assertTrue(lines.get(1).endsWith(";fdaugan;true;;;ERROR;ERROR"));
+		Assertions.assertTrue(lines.get(1).startsWith("OFF;"));
+		Assertions.assertTrue(lines.get(1).contains(";gfi-gstack;gStack;service:vm:test:test;vm1;"));
 	}
 
 	/**
