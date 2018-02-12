@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.transaction.Transactional;
@@ -310,6 +311,29 @@ public class VmResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("my-vm", execution.getVm());
 		Assertions.assertEquals("status", execution.getStatusText());
 		Assertions.assertEquals(VmOperation.OFF, execution.getOperation());
+	}
+
+	/**
+	 * Coverage only
+	 */
+	@Test
+	public void executeDefault() throws Exception {
+		final VmExecution execution = new VmExecution();
+		final Subscription subscription = new Subscription();
+		subscription.setId(1);
+		execution.setSubscription(subscription);
+		new VmServicePlugin() {
+
+			@Override
+			public String getKey() {
+				return null;
+			}
+
+			@Override
+			public Vm getVmDetails(Map<String, String> parameters) throws Exception {
+				return null;
+			}
+		}.execute(execution);
 	}
 
 	@Test

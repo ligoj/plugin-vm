@@ -24,7 +24,7 @@ public interface VmServicePlugin extends ServicePlugin {
 	 * @deprecated Use {@link #execute(VmExecution)}, it contains all information and can complete the execution
 	 *             context.
 	 */
-	@Deprecated(since = "1.4.0")
+	@Deprecated(since = "1.3.1")
 	default void execute(int subscription, VmOperation operation) throws Exception {
 		// nothing to do
 	}
@@ -48,7 +48,7 @@ public interface VmServicePlugin extends ServicePlugin {
 	 * @throws Exception
 	 *             Any exception while executing the operation.
 	 * @see #execute(int, VmOperation)
-	 * @since 1.4.0
+	 * @since 1.3.1
 	 */
 	default void execute(final VmExecution execution) throws Exception {
 		execute(execution.getSubscription().getId(), execution.getOperation());
