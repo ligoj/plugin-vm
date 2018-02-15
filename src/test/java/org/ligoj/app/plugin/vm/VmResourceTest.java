@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -633,6 +634,28 @@ public class VmResourceTest extends AbstractServerTest {
 		Assertions.assertTrue(lines.get(1).endsWith(";fdaugan;true;;;ERROR;ERROR"));
 		Assertions.assertTrue(lines.get(1).startsWith("OFF;"));
 		Assertions.assertTrue(lines.get(1).contains(";gfi-gstack;gStack;service:vm:test:test;vm1;"));
+		
+		// Add another schedule to the same subscription, with an execution
+		final VmSchedule schedule = new VmSchedule();
+		schedule.setOperation(VmOperation.ON);
+		schedule.setCron("0 0 0 1 1 ? 2049");
+		schedule.setSubscription(entity);
+		vmScheduleRepository.saveAndFlush(schedule);
+		
+		final VmExecution execution = new VmExecution();
+		execution.setDate(new Date());
+		execution.setSubscription(entity);
+		execution.setTrigger("_system");
+		execution.setOperation(VmOperation.ON);
+		execution.setSucceed(true);
+		vmExecutionRepository.saveAndFlush(execution);
+
+		output = new ByteArrayOutputStream();
+		((StreamingOutput) resource.downloadNodeSchedulesReport("service:vm:test:test", "file1").getEntity()).write(output);
+		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
+		Assertions.assertEquals(3, lines.size());
+		Assertions.assertTrue(lines.get(2).endsWith(";_system;true;;;2049/01/01 00:00:00;2493068400000"));
+
 	}
 
 	/**
