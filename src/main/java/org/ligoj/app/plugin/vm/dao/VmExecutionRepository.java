@@ -12,12 +12,10 @@ import org.springframework.data.jpa.repository.Query;
 public interface VmExecutionRepository extends RestRepository<VmExecution, Integer> {
 
 	/**
-	 * Return the each last executions related to the given node or sub-node. Security is not enabled.
+	 * Return the each last executions related to the given node or sub-node. Security is not involved.
 	 * 
 	 * @param node
 	 *            The node identifier to filter.
-	 * @param user
-	 *            The principal user name.
 	 * @return The schedules linked to the related node or sub-node.
 	 */
 	@Query("SELECT ve FROM VmExecution ve INNER JOIN FETCH ve.subscription AS s "

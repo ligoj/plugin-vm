@@ -35,6 +35,8 @@ public interface VmServicePlugin extends ServicePlugin {
 	 * @param parameters
 	 *            the subscription parameters.
 	 * @return Virtual Machine details with status, PU, and RAM.
+	 * @throws Exception
+	 *             When details failed, the subscription is considered as broken.
 	 */
 	Vm getVmDetails(final Map<String, String> parameters) throws Exception;
 

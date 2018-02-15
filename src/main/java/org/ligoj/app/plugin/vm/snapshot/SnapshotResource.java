@@ -71,8 +71,6 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 	 * @param stop
 	 *            When <code>true</code> the relate is stopped before the snapshot.
 	 * @return The snapshot task information.
-	 * @throws Exception
-	 *             Any error while creating the snapshot.
 	 */
 	@POST
 	public VmSnapshotStatus create(@PathParam("subscription") final int subscription,

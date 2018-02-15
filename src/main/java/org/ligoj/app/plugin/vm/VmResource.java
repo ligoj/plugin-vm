@@ -142,6 +142,9 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	/**
 	 * Remove a schedule of this subscription for a specific operation from the current scheduler, then from the data
 	 * base.
+	 * 
+	 * @throws SchedulerException
+	 *             When the schedule cannot be deleted by Quartz.
 	 */
 	private void unschedule(final int schedule) throws SchedulerException {
 		unscheduleQuartz(schedule);
@@ -419,7 +422,7 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 			} else {
 				// Last execution
 				writer.write(';');
-				writer.write(StringUtils.defaultString(execution.getVm(),""));
+				writer.write(StringUtils.defaultString(execution.getVm(), ""));
 				writer.write(';');
 				writer.write(df.format(execution.getDate()));
 				writer.write(';');
@@ -470,6 +473,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 *            optional 6th corresponds to the "seconds" and will be prepended to the expression to conform to Quartz
 	 *            format.
 	 * @return The created schedule identifier.
+	 * @throws SchedulerException
+	 *             When the schedule cannot be done by Quartz.
 	 */
 	@POST
 	@Transactional
@@ -484,6 +489,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 *            The schedule to save or update. The CRON expression may be either in the 5 either in 6 parts. The
 	 *            optional 6th corresponds to the "seconds" and will be prepended to the expression to conform to Quartz
 	 *            format.
+	 * @throws SchedulerException
+	 *             When the schedule cannot be done by Quartz.
 	 */
 	@PUT
 	@Transactional
@@ -529,6 +536,8 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	 * 
 	 * @param schedule
 	 *            The schedule identifier to delete.
+	 * @throws SchedulerException
+	 *             When the schedule cannot be done by Quartz.
 	 */
 	@DELETE
 	@Path("{id:\\d+}")
