@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 import javax.transaction.Transactional;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -19,6 +20,7 @@ import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.vm.VmResource;
 import org.ligoj.app.plugin.vm.dao.VmSnapshotStatusRepository;
+import org.ligoj.app.plugin.vm.model.SnapshotOperation;
 import org.ligoj.app.plugin.vm.model.VmSnapshotStatus;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.subscription.LongTaskRunnerSubscription;
@@ -39,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Path(VmResource.SERVICE_URL + "/{subscription:\\d+}/snapshot")
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
-public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotStatus, VmSnapshotStatusRepository> {
+public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshotStatus, VmSnapshotStatusRepository> {
 
 	@Autowired
 	@Getter
@@ -85,6 +87,7 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 			t.setStatusText(null);
 			t.setPhase(null);
 			t.setFinishedRemote(false);
+			t.setOperation(SnapshotOperation.CREATE);
 			t.setStop(stop);
 		});
 		final String user = securityHelper.getLogin();
@@ -100,14 +103,51 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 	}
 
 	/**
-	 * Return all snapshots matching to the given criteria and also associated to
-	 * the given subscription.
+	 * Delete a snapshot by its identifier.
+	 * 
+	 * @param subscription
+	 *            The related subscription.
+	 * @param id
+	 *            The internal snapshot identifier.
+	 * @return The snapshot task information.
+	 */
+	@DELETE
+	@Path("{snapshot}")
+	public VmSnapshotStatus delete(@PathParam("subscription") final int subscription,
+			@PathParam("snapshot") final String snapshot) {
+		// Check the visibility and get the contract implementation
+		final Snapshotting snap = getSnapshot(subscriptionResource.checkVisibleSubscription(subscription).getNode());
+		log.info("Snapshot deletion requested for subscription {}, snapshot {}", subscription, snapshot);
+		final VmSnapshotStatus task = startTask(subscription, t -> {
+			t.setWorkload(1);
+			t.setDone(0);
+			t.setSnapshotInternalId(snapshot);
+			t.setStatusText(null);
+			t.setPhase(null);
+			t.setFinishedRemote(false);
+			t.setOperation(SnapshotOperation.DELETE);
+			t.setStop(false);
+		});
+		final String user = securityHelper.getLogin();
+		// The snapshot execution will done into another thread
+		Executors.newSingleThreadExecutor().submit(() -> {
+			Thread.sleep(50);
+			securityHelper.setUserName(user);
+			snap.delete(subscription, subscriptionResource.getParametersNoCheck(subscription), task);
+			log.info("Snapshot deletion requested for subscription {}, snapshot {} finished", subscription, snapshot);
+			return null;
+		});
+		return task;
+	}
+
+	/**
+	 * Return all snapshots matching to the given criteria and also associated to the given subscription.
 	 *
 	 * @param subscription
 	 *            The related subscription identifier.
 	 * @param criteria
-	 *            The optional search criteria. Case is insensitive. May be the name
-	 *            or the identifier for this snapshot.
+	 *            The optional search criteria. Case is insensitive. May be the name or the identifier for this
+	 *            snapshot.
 	 * @return Matching snapshots ordered by descending creation date.
 	 * @throws Exception
 	 *             Any error while finding the snapshots.
@@ -116,7 +156,8 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 	public List<Snapshot> findAll(@PathParam("subscription") final int subscription,
 			@PathParam("q") @DefaultValue("") final String criteria) throws Exception {
 		// Check the visibility and get the contract implementation
-		return getSnapshot(subscriptionResource.checkVisibleSubscription(subscription).getNode()).findAllSnapshots(subscription, criteria);
+		return getSnapshot(subscriptionResource.checkVisibleSubscription(subscription).getNode())
+				.findAllSnapshots(subscription, criteria);
 	}
 
 	@Override
@@ -141,7 +182,8 @@ public class SnapshotResource implements LongTaskRunnerSubscription<VmSnapshotSt
 		if (task.isFailed()) {
 			task.setFinishedRemote(true);
 		} else if (!task.isFinishedRemote()) {
-			getSnapshot(subscriptionResource.checkVisibleSubscription(task.getLocked().getId()).getNode()).completeStatus(task);
+			getSnapshot(subscriptionResource.checkVisibleSubscription(task.getLocked().getId()).getNode())
+					.completeStatus(task);
 		}
 		return task.isFinishedRemote();
 	}

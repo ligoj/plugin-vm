@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.ligoj.app.iam.SimpleUser;
+import org.ligoj.app.plugin.vm.model.SnapshotOperation;
 import org.ligoj.bootstrap.core.DescribedBean;
 
 import lombok.Getter;
@@ -35,6 +36,8 @@ public class Snapshot extends DescribedBean<String> {
 	private boolean available;
 
 	private boolean pending;
+
+	private SnapshotOperation operation;
 
 	/**
 	 * When <code>true</code>, this snapshot has been created from a stopped VM.

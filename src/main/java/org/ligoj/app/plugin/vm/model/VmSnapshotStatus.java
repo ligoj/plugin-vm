@@ -1,6 +1,8 @@
 package org.ligoj.app.plugin.vm.model;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
 import org.ligoj.app.model.AbstractLongTaskSubscription;
@@ -45,5 +47,11 @@ public class VmSnapshotStatus extends AbstractLongTaskSubscription {
 	 * The related provider snapshot identifier.
 	 */
 	private String snapshotInternalId;
+	
+	/**
+	 * The associated snapshot operation.
+	 */
+	@Enumerated(EnumType.STRING)
+	private SnapshotOperation operation = SnapshotOperation.CREATE;
 
 }

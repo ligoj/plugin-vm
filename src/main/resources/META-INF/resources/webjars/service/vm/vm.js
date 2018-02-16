@@ -123,7 +123,7 @@ define(function () {
 					render: function (status, mode, data) {
 						if (mode === 'display') {
 							status = (status && current.$messages[status]) || status;
-							if (data.pending) {
+							if (current.isPending(data)) {
 								return '<i class="fa fa-circle-o-notch fa-spin"></i> ' + status;
 							}
 							if (data.available) {
@@ -138,7 +138,7 @@ define(function () {
 					orderable: false,
 					width: '40px',
 					render: function () {
-						return '';
+						return '<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>';
 					}
 				}],
 				buttons: [{
@@ -178,11 +178,18 @@ define(function () {
 		hasPendingSnapshot: function (snapshots) {
 			for (var index = 0; index < snapshots.length; index++) {
 				var snapshot = snapshots[index];
-				if (snapshot.pending) {
+				if (current.isPending(snapshot)) {
 					return true;
 				}
 			}
 			return false;
+		},
+
+		/**
+		 * Return true when the given snapshot is not in a stable operation.
+		 */
+		isPending: function(snapshot) {
+			return snapshot.pending || snapshot.operation === 'deleting';
 		},
 
 		/**
@@ -201,7 +208,7 @@ define(function () {
 					notifyManager.notify(Handlebars.compile(current.$messages.created)(data.id));
 					current.pollStart('snapshot-' + subscription, subscription, current.synchronizeSnapshot);
 				},
-				error: function (data) {
+				error: function () {
 					current.enableSnapshot();
 				}
 			});
@@ -408,8 +415,10 @@ define(function () {
 				return false;
 			});
 			_('vm-schedules').on('click', 'tr .delete', function () {
-				var $tr = $(this).closest('tr');
-				current.deleteSchedule(current.table.fnGetData($tr[0]));
+				current.deleteSchedule(current.table.fnGetData($(this).closest('tr')[0]));
+			});
+			_('vm-snapshots').on('click', 'tr .delete', function () {
+				current.deleteSnapshot(current.snapshotTable.fnGetData($(this).closest('tr')[0]));
 			});
 		},
 
@@ -511,6 +520,28 @@ define(function () {
 				success: function () {
 					notifyManager.notify((Handlebars.compile(current.$messages.deleted))(subscription + ' : ' + schedule.operation.toUpperCase()));
 					current.reload();
+				}
+			});
+		},
+
+		/**
+		 * Delete a snapshot.
+		 * @param {object} Snapshot to delete.
+		 */
+		deleteSnapshot: function (snapshot) {
+			var $button = current.disableSnapshot();
+			var subscription = current.model.id;
+			$.ajax({
+				type: 'DELETE',
+				url: REST_PATH + 'service/vm/' + subscription + '/snapshot/' + snapshot.id,
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function (data) {
+					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(snapshot.id));
+					current.pollStart('snapshot-' + subscription, subscription, current.synchronizeSnapshot);
+				},
+				error: function () {
+					current.enableSnapshot();
 				}
 			});
 		},

@@ -26,6 +26,21 @@ public interface Snapshotting {
 	void snapshot(int subscription, Map<String, String> parameters, VmSnapshotStatus transientTask) throws Exception;
 
 	/**
+	 * Delete a snapshot. Task runner API is used to share the progress.
+	 * 
+	 * @param subscription
+	 *            The related subscription.
+	 * @param parameters
+	 *            The subscription parameters.
+	 * @param transientTask
+	 *            A transient instance of the related task, and also linked to the given subscription. Note it is a
+	 *            read-only view.
+	 * @throws Exception
+	 *             Any error while deleting the snapshot.
+	 */
+	void delete(int subscription, Map<String, String> parameters, VmSnapshotStatus transientTask) throws Exception;
+
+	/**
 	 * Return all snapshots matching to the given criteria and also associated to the given subscription.
 	 *
 	 * @param subscription
