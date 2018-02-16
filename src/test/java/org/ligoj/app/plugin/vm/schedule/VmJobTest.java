@@ -1,4 +1,4 @@
-package org.ligoj.app.plugin.vm;
+package org.ligoj.app.plugin.vm.schedule;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

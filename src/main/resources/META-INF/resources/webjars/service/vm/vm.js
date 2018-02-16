@@ -138,8 +138,6 @@ define(function () {
 					orderable: false,
 					width: '40px',
 					render: function () {
-						// var result = '<a class="restore"><i class="fa fa-history" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-restore'] + '"></i></a>';
-						// TODO result += '<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>';
 						return '';
 					}
 				}],
@@ -276,7 +274,7 @@ define(function () {
 					'data-toggle': 'tooltip'
 				},
 				'link-attr': {
-					'href': REST_PATH + 'service/vm/' + model.subscription + '/history-' + model.subscription + '.csv',
+					'href': REST_PATH + 'service/vm/' + model.subscription + '/executions-' + model.subscription + '.csv',
 					'download': 'download'
 				}
 			}];
@@ -419,8 +417,7 @@ define(function () {
 			var result = {
 				id: current.currentId,
 				cron: _('cron').val(),
-				operation: _('operation').val().toLowerCase(),
-				subscription: current.model.subscription
+				operation: _('operation').val().toLowerCase()
 			};
 
 			return result;
@@ -508,7 +505,7 @@ define(function () {
 			var subscription = current.model.subscription;
 			$.ajax({
 				type: 'DELETE',
-				url: REST_PATH + 'service/vm/' + schedule.id,
+				url: REST_PATH + 'service/vm/' + subscription + '/schedule/' + schedule.id,
 				dataType: 'json',
 				contentType: 'application/json',
 				success: function () {
@@ -523,9 +520,10 @@ define(function () {
 		 * @param {Object} schedule to update/save : operation+CRON
 		 */
 		saveSchedule: function (schedule) {
+			var subscription = current.model.subscription;
 			$.ajax({
 				type: schedule.id ? 'PUT' : 'POST',
-				url: REST_PATH + 'service/vm',
+				url: REST_PATH + 'service/vm/' + subscription + '/schedule',
 				dataType: 'json',
 				contentType: 'application/json',
 				data: JSON.stringify(schedule),

@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.ligoj.app.plugin.vm.schedule.VmScheduleVo;
+
 import lombok.Getter;
 import lombok.Setter;
 

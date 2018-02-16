@@ -1,10 +1,11 @@
-package org.ligoj.app.plugin.vm;
+package org.ligoj.app.plugin.vm.schedule;
 
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.ligoj.app.plugin.vm.VmResource;
 import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.bootstrap.core.SpringUtils;

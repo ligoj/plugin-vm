@@ -1,4 +1,4 @@
-package org.ligoj.app.plugin.vm;
+package org.ligoj.app.plugin.vm.schedule;
 
 import java.util.Date;
 
@@ -35,12 +35,6 @@ public class VmScheduleVo {
 	@NotNull
 	private VmOperation operation;
 
-	/**
-	 * The related subscription.
-	 */
-	@NotNull
-	private Integer subscription;
-	
 	/**
 	 * The next scheduled execution date from the server side.
 	 */
