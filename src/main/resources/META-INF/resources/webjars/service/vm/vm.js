@@ -373,7 +373,7 @@ define(function () {
 					id: operation.toUpperCase(),
 					text: current.formatOperation(operation)
 				} : null);
-				_('cron').val(schedule.cron || '').trigger('change');
+				_('cron').val(schedule.cron || '0 0 0 * * ?').trigger('change');
 				require(['i18n!jqcron/nls/messages', 'jqcron/jqcron', 'css!jqcron/jqcron'], function (messages) {
 					_('cron').jqCron({
 						enabled_second: true,
