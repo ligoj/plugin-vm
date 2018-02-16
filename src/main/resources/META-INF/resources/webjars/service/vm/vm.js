@@ -272,7 +272,7 @@ define(function () {
 				'extend': 'dropdown-link',
 				'text': current.$messages['service:vm:schedule:reports:executions'],
 				'attr': {
-					'title': current.$messages['service:vm:schedule:reports:schedules-help'],
+					'title': current.$messages['service:vm:schedule:reports:executions-help'],
 					'data-toggle': 'tooltip'
 				},
 				'link-attr': {
