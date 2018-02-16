@@ -331,41 +331,6 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Write all executions related to given subscription, from the oldest to the newest.
-	 */
-	private void writeHistory(final OutputStream output, Collection<VmExecution> executions) throws IOException {
-		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
-		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
-		writer.write(
-				"dateHMS;timestamp;operation;subscription;project;projectKey;projectName;node;vm;trigger;succeed;statusText;errorText");
-		for (final VmExecution execution : executions) {
-			final Project project = execution.getSubscription().getProject();
-			writer.write('\n');
-			writer.write(df.format(execution.getDate()));
-			writer.write(';');
-			writer.write(String.valueOf(execution.getDate().getTime()));
-			writer.write(';');
-			writer.write(execution.getOperation().name());
-			writer.write(';');
-			writer.write(String.valueOf(execution.getSubscription().getId()));
-			writer.write(';');
-			writer.write(String.valueOf(project.getId()));
-			writer.write(';');
-			writer.write(project.getPkey());
-			writer.write(';');
-			writer.write(project.getName().replaceAll("\"", "'"));
-			writer.write(';');
-			writer.write(execution.getSubscription().getNode().getId());
-			writer.write(';');
-			writer.write(StringUtils.defaultString(execution.getVm(), ""));
-			writeExecutionStatus(writer, execution);
-		}
-
-		// Ensure buffer is flushed
-		writer.flush();
-	}
-
-	/**
 	 * Return all configured schedules report of all VM related to a a visible subscription related to the given node.
 	 * 
 	 * @param node
@@ -391,6 +356,23 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
+	 * Write all executions related to given subscription, from the oldest to the newest.
+	 */
+	private void writeHistory(final OutputStream output, Collection<VmExecution> executions) throws IOException {
+		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
+		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
+		writer.write(
+				"subscription;project;projectKey;projectName;node;dateHMS;timestamp;operation;vm;trigger;succeed;statusText;errorText");
+		for (final VmExecution execution : executions) {
+			writeCommon(writer, execution.getSubscription());
+			writeExecutionStatus(writer, execution, df);
+		}
+
+		// Ensure buffer is flushed
+		writer.flush();
+	}
+
+	/**
 	 * Write all schedules.
 	 */
 	private void writeSchedules(final OutputStream output, Collection<VmSchedule> schedules,
@@ -399,35 +381,19 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
 		final Date now = DateUtils.newCalendar().getTime();
 		writer.write(
-				"operation;subscription;project;projectKey;projectName;node;vm;lastDateHMS;lastTimestamp;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp");
+				"subscription;project;projectKey;projectName;node;cron;operation;lastDateHMS;lastTimestamp;lastOperation;vm;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp");
 		for (final VmSchedule schedule : schedules) {
 			// The last execution of the related schedule
 			final VmExecution execution = lastExecutions.get(schedule.getSubscription().getId());
-
-			final Project project = schedule.getSubscription().getProject();
-			writer.write('\n');
+			writeCommon(writer, schedule.getSubscription());
+			writer.write(schedule.getCron());
+			writer.write(';');
 			writer.write(schedule.getOperation().name());
-			writer.write(';');
-			writer.write(String.valueOf(schedule.getSubscription().getId()));
-			writer.write(';');
-			writer.write(String.valueOf(project.getId()));
-			writer.write(';');
-			writer.write(project.getPkey());
-			writer.write(';');
-			writer.write(project.getName().replaceAll("\"", "'"));
-			writer.write(';');
-			writer.write(schedule.getSubscription().getNode().getId());
 			if (execution == null) {
-				writer.write(";;;;;;;");
+				writer.write(";;;;;;;;");
 			} else {
 				// Last execution
-				writer.write(';');
-				writer.write(StringUtils.defaultString(execution.getVm(), ""));
-				writer.write(';');
-				writer.write(df.format(execution.getDate()));
-				writer.write(';');
-				writer.write(String.valueOf(execution.getDate().getTime()));
-				writeExecutionStatus(writer, execution);
+				writeExecutionStatus(writer, execution, df);
 			}
 
 			// Next execution
@@ -449,12 +415,18 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 	}
 
 	/**
-	 * Write <code>trigger;succeed;statusText;errorText</code> execution values.
-	 * 
-	 * @throws IOException
-	 *             When could not write the execution values.
+	 * Write <code>dateHms;timestamp;operation;vm;trigger;succeed;statusText;errorText</code> execution values.
 	 */
-	private void writeExecutionStatus(final Writer writer, final VmExecution execution) throws IOException {
+	private void writeExecutionStatus(final Writer writer, final VmExecution execution, final FastDateFormat df)
+			throws IOException {
+		writer.write(';');
+		writer.write(df.format(execution.getDate()));
+		writer.write(';');
+		writer.write(String.valueOf(execution.getDate().getTime()));
+		writer.write(';');
+		writer.write(execution.getOperation().name());
+		writer.write(';');
+		writer.write(StringUtils.defaultString(execution.getVm(), ""));
 		writer.write(';');
 		writer.write(execution.getTrigger());
 		writer.write(';');
@@ -463,6 +435,24 @@ public class VmResource extends AbstractServicePlugin implements InitializingBea
 		writer.write(StringUtils.defaultString(execution.getStatusText(), ""));
 		writer.write(';');
 		writer.write(StringUtils.defaultString(execution.getError(), ""));
+	}
+
+	/**
+	 * Write <code>subscription;project;projetKey;projectName;node</code>.
+	 */
+	private void writeCommon(final Writer writer, final Subscription subscription) throws IOException {
+		final Project project = subscription.getProject();
+		writer.write('\n');
+		writer.write(String.valueOf(subscription.getId()));
+		writer.write(';');
+		writer.write(String.valueOf(project.getId()));
+		writer.write(';');
+		writer.write(project.getPkey());
+		writer.write(';');
+		writer.write(project.getName().replaceAll("\"", "'"));
+		writer.write(';');
+		writer.write(subscription.getNode().getId());
+		writer.write(';');
 	}
 
 	/**
