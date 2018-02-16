@@ -65,9 +65,9 @@ define(function () {
 			if (current.model.configuration.supportSnapshot) {
 				_('vm-snapshot-tab-trigger').off('shown.bs.tab').one('shown.bs.tab', function () {
 					current.initializeVmSnapshotsTable();
-				}).closest('li').removeClass('active').closest('.nav-tabs').removeClass('hidden');
+				}).closest('li').removeClass('active').closest('.nav').removeClass('hidden');
 			} else {
-				_('vm-snapshot-tab-trigger').closest('li').removeClass('active').closest('.nav-tabs').addClass('hidden');
+				_('vm-snapshot-tab-trigger').closest('li').removeClass('active').closest('.nav').addClass('hidden');
 			}
 			_('vm-snapshot-tab').removeClass('active');
 			_('vm-schedule-tab').addClass('active');
