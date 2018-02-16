@@ -256,33 +256,62 @@ define(function () {
 					extend: 'collection',
 					text: current.$messages['service:vm:schedule:reports'],
 					autoClose: true,
-					buttons: [{
-						// Add history download button
-						'extend': 'dropdown-link',
-						'text': current.$messages['service:vm:schedule:reports:executions'],
-						'attr': {
-							'title': current.$messages['service:vm:schedule:reports:schedules-help'],
-							'data-toggle': 'tooltip'
-						},
-						'link-attr': {
-							'href': REST_PATH + 'service/vm/' + current.model.subscription + '/history-' + current.model.subscription + '.csv',
-							'download': 'download'
-						}
-					}, {
-						// Add schedules history download button
-						extend: 'dropdown-link',
-						text: current.$messages['service:vm:schedule:reports:schedules'],
-						attr: {
-							'title': current.$messages['service:vm:schedule:reports:schedules-help'],
-							'data-toggle': 'tooltip'
-						},
-						'link-attr': {
-							'href': REST_PATH + 'service/vm/' + current.model.node.id + '/schedules-' + current.model.node.id.replace(/:/g, '-') + '.csv',
-							'download': 'download'
-						}
-					}]
+					buttons: current.generateReportButtons(current.model)
 				}]
 			});
+		},
+		
+		/**
+		 * Return a new DataTables buttons collection configuration.
+		 * @param {object} model The model to render.
+		 * @return DataTables buttons collection configuration.
+		 */
+		generateReportButtons: function(model) {
+			var buttons = [{
+				// Add history download button
+				'extend': 'dropdown-link',
+				'text': current.$messages['service:vm:schedule:reports:executions'],
+				'attr': {
+					'title': current.$messages['service:vm:schedule:reports:schedules-help'],
+					'data-toggle': 'tooltip'
+				},
+				'link-attr': {
+					'href': REST_PATH + 'service/vm/' + model.subscription + '/history-' + model.subscription + '.csv',
+					'download': 'download'
+				}
+			}];
+			buttons.push(current.newReportScheduleButton(model.node));
+					
+			if (model.node.refined) {
+				// Add the tool level
+				buttons.push(current.newReportScheduleButton(model.node.refined));
+				if (model.node.refined.refined) {
+					// Add the service level
+					buttons.push(current.newReportScheduleButton(model.node.refined.refined));
+				}
+			}
+			return buttons;
+		},
+
+		/**
+		 * Return a new DataTables button for a given node.
+		 * @param {object} node The node to render.
+		 * @return DataTables button configuration.
+		 */
+		newReportScheduleButton: function (node) {
+			return {
+				// Add schedules history download button
+				extend: 'dropdown-link',
+				text: Handlebars.compile(current.$messages['service:vm:schedule:reports:schedules'])(node.name),
+				attr: {
+					'title': current.$messages['service:vm:schedule:reports:schedules-help'],
+					'data-toggle': 'tooltip'
+				},
+				'link-attr': {
+					'href': REST_PATH + 'service/vm/' + node.id + '/schedules-' + node.id.replace(/:/g, '-') + '.csv',
+					'download': 'download'
+				}
+			}
 		},
 
 		getNextExecution: function (cron) {

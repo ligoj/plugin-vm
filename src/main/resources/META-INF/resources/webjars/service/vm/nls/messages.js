@@ -32,7 +32,7 @@ define({
 		"service:vm:schedule:reports": "Reports",
 		"service:vm:schedule:reports:executions": "Execution history",
 		"service:vm:schedule:reports:executions-help": "All executions related to this subscription",
-		"service:vm:schedule:reports:schedules": "Node Schedules",
+		"service:vm:schedule:reports:schedules": "Node Schedules ({{this}})",
 		"service:vm:schedule:reports:schedules-help": "All visible schedules sharing the same node this subscription",
 		"service:vm:nb-schedules": "Number of schedules for this VM",
 		"service:vm:snapshot": "Snapshot",

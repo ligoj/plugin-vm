@@ -29,7 +29,7 @@ define({
 	"service:vm:schedule:reports": "Rapports",
 	"service:vm:schedule:reports:executions": "Historique d'exécution",
 	"service:vm:schedule:reports:executions-help": "Toutes les exécutions liées à cette souscription",
-	"service:vm:schedule:reports:schedules": "Programmations du noeud",
+	"service:vm:schedule:reports:schedules": "Programmations du noeud ({{this}})",
 	"service:vm:schedule:reports:schedules-help": "Toutes les programmations visibles associées au même noeud que cette souscription",
 	"service:vm:nb-schedules": "Nombre de programmations pour cette VM",
 	"vm-operation-success": "Lancement de l'opération {{[1]}} effectuée sur la VM {{[0]}}",
