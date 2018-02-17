@@ -49,6 +49,9 @@ define({
 		"service:vm:snapshot-date": "Date",
 		"service:vm:snapshot-date-help": "Snapshot creation date",
 		"service:vm:snapshot-status": "Status",
+		"service:vm:snapshot-status-available": "Available",
+		"service:vm:snapshot-status-deleting": "Deleting",
+		"service:vm:snapshot-status-not-finished-remote": "Pending operation on IaaS",
 		"service:vm:snapshot-status-help": "Snapshot status progress",
 		"vm-operation-success": "Requesting operation {{[1]}} done on VM {{[0]}}",
 		"error": {

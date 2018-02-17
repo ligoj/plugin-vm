@@ -122,7 +122,7 @@ define(function () {
 					data: 'statusText',
 					render: function (status, mode, data) {
 						if (mode === 'display') {
-							status = (status && current.$messages[status]) || status;
+							status = (status && current.$messages['service:vm:snapshot-status-' + status]) || status;
 							if (current.isPending(data)) {
 								return '<i class="fa fa-circle-o-notch fa-spin"></i> ' + status;
 							}
@@ -137,8 +137,8 @@ define(function () {
 					data: null,
 					orderable: false,
 					width: '40px',
-					render: function () {
-						return '<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>';
+					render: function (_i, _j, data) {
+						return data.operation ? '' : ('<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>');
 					}
 				}],
 				buttons: [{
@@ -189,7 +189,7 @@ define(function () {
 		 * Return true when the given snapshot is not in a stable operation.
 		 */
 		isPending: function(snapshot) {
-			return snapshot.pending || snapshot.operation === 'deleting';
+			return snapshot.pending || snapshot.operation === 'delete';
 		},
 
 		/**
@@ -418,8 +418,28 @@ define(function () {
 				current.deleteSchedule(current.table.fnGetData($(this).closest('tr')[0]));
 			});
 			_('vm-snapshots').on('click', 'tr .delete', function () {
-				current.deleteSnapshot(current.snapshotTable.fnGetData($(this).closest('tr')[0]));
+				var $tr = $(this).closest('tr');
+				var snapshot = current.snapshotTable.fnGetData($(this).closest('tr')[0]);
+				snapshot.operation = 'delete';
+				snapshot.statusText = 'deleting';
+				current.redrawSnapshot(snapshot.id);
+				current.deleteSnapshot(snapshot);
 			});
+		},
+		
+		redrawSnapshot: function(id, callback) {
+			var found = false;
+			_('vm-snapshots').DataTable().rows(function (index, data) {
+				if (data.id === id) {
+					found = true;
+					if (callback) {
+						callback(data);
+					}
+					return true;
+				}
+				return false;
+			}).invalidate().draw();
+			return found;
 		},
 
 		formToObject: function () {
@@ -679,10 +699,14 @@ define(function () {
 				// Stop the polling, update the buttons
 				_('vm-snapshots').DataTable().ajax.reload();
 				current.updateSnapshotFinalStatus(status);
-			} else if (status.end) {
-				// Task is finished locally, but not remotely
-				_('vm-snapshots').DataTable().ajax.reload();
 			} else {
+				if (!current.redrawSnapshot(status.snapshotInternalId, function(snapshot) {
+						snapshot.operation = status.operation;
+						snapshot.statusText = status.statusText;
+					})) {
+					_('vm-snapshots').DataTable().ajax.reload();
+				}
+			
 				// Update the tooltip for the progress
 				var statusText = 'Phase: ' + status.phase + '<br/>Started: ' + formatManager.formatDateTime(status.start) + (status.snapshotInternalId ? '<br/>Internal reference:' + status.snapshotInternalId : '');
 				current.$super('$view').find('.vm-snapshot-create').attr('title', statusText);

@@ -122,7 +122,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 			t.setWorkload(1);
 			t.setDone(0);
 			t.setSnapshotInternalId(snapshot);
-			t.setStatusText(null);
+			t.setStatusText("deleting");
 			t.setPhase(null);
 			t.setFinishedRemote(false);
 			t.setOperation(SnapshotOperation.DELETE);
