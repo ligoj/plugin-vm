@@ -55,7 +55,7 @@ define(function () {
 
 			// Configure schedules
 			require(['later/later.mod', 'pretty-cron/pretty-cron'], function (later) {
-				current.initializeVmConfiguration(later);
+				current.initializeVmConfiguration();
 				current.later = later;
 				later.date.localTime();
 				_('subscribe-configuration-vm').removeClass('hide');
@@ -196,7 +196,7 @@ define(function () {
 		 * Create a snapshot.
 		 */
 		createSnapshot: function (e) {
-			var $button = current.disableSnapshot();
+			current.disableSnapshot();
 			var subscription = current.model.id;
 			var stop = $(e.target).closest('li').is('.vm-snapshot-create-stop');
 			$.ajax({
@@ -334,7 +334,7 @@ define(function () {
 		/**
 		 * Initialize VM configuration UI components
 		 */
-		initializeVmConfiguration: function (later) {
+		initializeVmConfiguration: function () {
 			current.initializeSchedulesTable();
 
 			var operations = [];
@@ -369,7 +369,7 @@ define(function () {
 				}
 			});
 			// VM operation schedule helper in popup
-			_('vm-schedules-popup').on('show.bs.modal', function (event) {
+			_('vm-schedules-popup').on('show.bs.modal', function () {
 				validationManager.reset($(this));
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
@@ -536,7 +536,7 @@ define(function () {
 				url: REST_PATH + 'service/vm/' + subscription + '/snapshot/' + snapshot.id,
 				dataType: 'json',
 				contentType: 'application/json',
-				success: function (data) {
+				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(snapshot.id));
 					current.pollStart('snapshot-' + subscription, subscription, current.synchronizeSnapshot);
 				},

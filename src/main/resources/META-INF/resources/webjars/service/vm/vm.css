@@ -41,7 +41,7 @@ th.next-execution {
     pointer-events: none;
 }
 .service-vm-status {
-	text-shadow: black 0px 0px 1px;
+	text-shadow: black 0 0 1px;
 }
 
 .vm-snapshot-create-stop i, .vm-snapshot-create-no-stop i {
