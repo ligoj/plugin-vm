@@ -107,7 +107,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	 * 
 	 * @param subscription
 	 *            The related subscription.
-	 * @param id
+	 * @param snapshot
 	 *            The internal snapshot identifier.
 	 * @return The snapshot task information.
 	 */

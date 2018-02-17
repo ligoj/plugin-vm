@@ -300,6 +300,13 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 
 	/**
 	 * Write <code>dateHms;timestamp;operation;vm;trigger;succeed;statusText;errorText</code> execution values.
+	 * 
+	 * @param writer
+	 *            Target output.
+	 * @param execution
+	 *            Execution to write.
+	 * @param df
+	 *            Date format for date to write.
 	 */
 	public void writeExecutionStatus(final Writer writer, final VmExecution execution, final FastDateFormat df)
 			throws IOException {
@@ -323,6 +330,11 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 
 	/**
 	 * Write <code>subscription;project;projetKey;projectName;node</code>.
+	 * 
+	 * @param writer
+	 *            Target output.
+	 * @param subscription
+	 *            Related subscription.
 	 */
 	private void writeCommon(final Writer writer, final Subscription subscription) throws IOException {
 		final Project project = subscription.getProject();
