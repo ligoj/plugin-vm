@@ -141,7 +141,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 		Assertions.assertEquals(getAuthenticationName(), status.getAuthor());
 		Assertions.assertNull(status.getEnd());
 		Assertions.assertEquals("snapshot-id", status.getSnapshotInternalId());
-		Assertions.assertNull(status.getStatusText());
+		Assertions.assertNull("deleting", status.getStatusText());
 		Assertions.assertNull(status.getPhase());
 		Assertions.assertEquals(subscription, status.getLocked().getId().intValue());
 		Assertions.assertNotNull(status.getStart());
