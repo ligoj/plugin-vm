@@ -153,7 +153,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 
 	@Test
 	public void findAll() throws Exception {
-		final Snapshot snapshot = new Snapshot();
+		Snapshot snapshot = new Snapshot();
 		snapshot.setAuthor(new SimpleUser());
 		snapshot.setAvailable(true);
 		snapshot.setDate(new Date());
@@ -161,6 +161,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 		snapshot.setPending(true);
 		snapshot.setStatusText("status");
 		snapshot.setStopRequested(true);
+		snapshot.setOperation(SnapshotOperation.CREATE);
 
 		final VolumeSnapshot volumeSnapshot = new VolumeSnapshot();
 		volumeSnapshot.setId("snap");
@@ -171,6 +172,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 
 		final List<Snapshot> list = resource.findAll(subscription, "criteria");
 		Assertions.assertEquals(1, list.size());
+		snapshot = list.get(0);
 
 		// Coverage only for the API
 		Assertions.assertNotNull(snapshot.getAuthor());
@@ -180,6 +182,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("description", snapshot.getDescription());
 		Assertions.assertTrue(snapshot.isPending());
 		Assertions.assertEquals("status", snapshot.getStatusText());
+		Assertions.assertEquals(SnapshotOperation.CREATE, snapshot.getOperation());
 		Assertions.assertEquals(1, snapshot.getVolumes().size());
 		Assertions.assertEquals("snap", volumeSnapshot.getId());
 		Assertions.assertEquals(10, volumeSnapshot.getSize());

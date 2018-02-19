@@ -18,8 +18,7 @@ import lombok.Setter;
 public class Snapshot extends DescribedBean<String> {
 
 	/**
-	 * User requesting this snapshot. May be <code>null</code> when system requested
-	 * it.
+	 * User requesting this snapshot. May be <code>null</code> when system requested it.
 	 */
 	private SimpleUser author;
 
@@ -33,18 +32,31 @@ public class Snapshot extends DescribedBean<String> {
 	 */
 	private List<VolumeSnapshot> volumes;
 
+	/**
+	 * The remote state given by the provider. The snapshot is technically completed, and is available. However, some
+	 * provider may delay the globally availability : replication, cache etc.
+	 */
 	private boolean available;
 
+	/**
+	 * Differs from the {@link #isAvailable()} when the snapshot is available from the provider side, but not yet
+	 * visible/available at client side.
+	 */
 	private boolean pending;
 
+	/**
+	 * The current snapshot operation.
+	 */
 	private SnapshotOperation operation;
 
 	/**
-	 * When <code>true</code>, this snapshot has been created from a stopped VM.
-	 * This information is not saved with the AMI and is only relevant and not
-	 * <code>null</code> with "pending" state set from the task runner.
+	 * When <code>true</code>, this snapshot has been created from a stopped VM. This information is not saved with the
+	 * AMI and is only relevant and not <code>null</code> with "pending" state set from the task runner.
 	 */
 	private Boolean stopRequested;
 
+	/**
+	 * Current status either collected at server side, either client side when there are several phases required to complete the task.
+	 */
 	private String statusText;
 }
