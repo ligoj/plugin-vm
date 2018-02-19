@@ -103,6 +103,8 @@ public class VmScheduleResource implements InitializingBean {
 	 * 
 	 * @param subscription
 	 *            The parent subscription holding the schedules.
+	 * @throws SchedulerException
+	 *             When quartz cannot remove the schedules.
 	 */
 	protected void unscheduleAll(final int subscription) throws SchedulerException {
 		// Remove current schedules from the memory

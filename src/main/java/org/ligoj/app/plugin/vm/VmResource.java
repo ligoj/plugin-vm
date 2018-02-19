@@ -309,7 +309,7 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 	 * @param df
 	 *            Date format for date to write.
 	 */
-	public void writeExecutionStatus(final Writer writer, final VmExecution execution, final FastDateFormat df)
+	private void writeExecutionStatus(final Writer writer, final VmExecution execution, final FastDateFormat df)
 			throws IOException {
 		writer.write(';');
 		writer.write(df.format(execution.getDate()));
