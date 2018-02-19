@@ -32,7 +32,7 @@ public class VmExecution extends AbstractPersistable<Integer> {
 	private Date date;
 
 	/**
-	 * The executed VM operation
+	 * The executed VM operation. When <code>null</code> in detached mode, the execution is cancelled.
 	 */
 	@NotNull
 	private VmOperation operation;
