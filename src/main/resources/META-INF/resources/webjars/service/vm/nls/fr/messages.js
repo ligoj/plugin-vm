@@ -1,4 +1,5 @@
 define({
+	"configure-present": 'Configurer (a déjà une configuration)',
 	"service:vm": "Virtualisation",
 	"service:vm:network": "Réseau",
 	"service:vm:resources": "Ressources",

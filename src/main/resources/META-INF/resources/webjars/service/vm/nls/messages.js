@@ -1,5 +1,6 @@
 define({
 	"root": {
+		"configure-present": 'Configure (has configuration)',
 		"service:vm": "Virtualization",
 		"service:vm:os": "OS",
 		"service:vm:network": "Network",

@@ -472,8 +472,8 @@ define(function () {
 			result += '</ul></div>';
 
 			// Configuration link
-			result += '<a href="#/home/project/' + subscription.project + '/subscription/' + subscription.id + '" class="feature" data-toggle-"tooltip" title="' + current.$messages.configure + '">' +
-				'<i class="fa fa-gear"></i><span class="service-vm-configure-check"><i class="fa fa-circle-o text-danger hidden"></i></a>';
+			result += '<a href="#/home/project/' + subscription.project + '/subscription/' + subscription.id + '" class="feature configure-trigger" data-toggle="tooltip" title="' + current.$messages.configure + '">' +
+				'<i class="fa fa-gear"></i></a>';
 			return result;
 		},
 
@@ -493,16 +493,10 @@ define(function () {
 			var deployed = status === 'powered_off' && subscription.data.vm.deployed;
 			if (subscription.data.schedules) {
 				// At least on schedule
-				$td.find('.service-vm-schedule-check i').removeClass('hidden');
-				var $link = $td.find('.service-vm-schedule-check-link');
-				if ($link.has('.service-vm-schedule-count').length === 0) {
-					$link.append('<span class="label label-success service-vm-schedule-count pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:nb-schedules'] + '"></span>');
-				}
-				$link.find('.service-vm-schedule-count').text(subscription.data.schedules);
+				$td.find('.configure-trigger').tooltip('hide').attr('title', current.$messages['configure-present']).addClass('text-danger');
 			} else {
-				$td.find('.service-vm-schedule-check i').addClass('hidden');
+				$td.find('.configure-trigger').tooltip('hide').attr('title', current.$messages.configure).removeClass('text-danger');
 			}
-			$td.find('.service-vm-schedule-count').text(subscription.data.schedules || '');
 			return '<i data-toggle="tooltip" data-html="true" title="' + (current.$messages['service:vm:' + status] || status) +
 				(busy ? ' (' + current.$messages['service:vm:busy'] + ')' : '') +
 				(deployed ? '<br>[' + current.$messages['service:vm:deployed'] + ']' : '') + '" class="' +

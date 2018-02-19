@@ -26,20 +26,6 @@ th.next-execution {
     float: left;
     width: 0;
 }
-.service-vm-schedule-check {
-	position: absolute;
-	width: 0;
-	height: 0;
-}
-.service-vm-schedule-check i {
-	position: relative;
-    left: -6px;
-    font-size: xx-small;
-    padding: 0;
-    top: 3px;
-    text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
-    pointer-events: none;
-}
 .service-vm-status {
 	text-shadow: black 0 0 1px;
 }
