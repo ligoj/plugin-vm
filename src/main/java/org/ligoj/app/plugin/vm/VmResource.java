@@ -270,6 +270,7 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 			// The last execution of the related schedule
 			final VmExecution execution = lastExecutions.get(schedule.getSubscription().getId());
 			writeCommon(writer, schedule.getSubscription());
+			writer.write(';');
 			writer.write(schedule.getCron());
 			writer.write(';');
 			writer.write(schedule.getOperation().name());
@@ -348,6 +349,5 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 		writer.write(project.getName().replaceAll("\"", "'"));
 		writer.write(';');
 		writer.write(subscription.getNode().getId());
-		writer.write(';');
 	}
 }

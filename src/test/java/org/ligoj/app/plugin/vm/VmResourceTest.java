@@ -335,9 +335,9 @@ public class VmResourceTest extends AbstractServerTest {
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(3, lines.size());
 		Assertions.assertTrue(lines.get(1)
-				.matches("\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;;.+;.+;OFF;;fdaugan;true;status1;"));
+				.matches("\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;.+;.+;OFF;;fdaugan;true;status1;"));
 		Assertions.assertTrue(lines.get(2)
-				.matches("\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;;.+;.+;SHUTDOWN;vm1;_system;true;;"));
+				.matches("\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;.+;.+;SHUTDOWN;vm1;_system;true;;"));
 		Assertions.assertEquals(2, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
 		Assertions.assertEquals(subscription, vmExecutionRepository.findAllBy("subscription.id", subscription).get(0)
 				.getSubscription().getId().intValue());
