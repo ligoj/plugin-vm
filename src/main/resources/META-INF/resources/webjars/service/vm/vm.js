@@ -497,6 +497,7 @@ define(function () {
 			} else {
 				$td.find('.configure-trigger').tooltip('hide').attr('title', current.$messages.configure).removeClass('text-danger');
 			}
+			$td.find('.feature').removeClass('hidden');
 			return '<i data-toggle="tooltip" data-html="true" title="' + (current.$messages['service:vm:' + status] || status) +
 				(busy ? ' (' + current.$messages['service:vm:busy'] + ')' : '') +
 				(deployed ? '<br>[' + current.$messages['service:vm:deployed'] + ']' : '') + '" class="' +
