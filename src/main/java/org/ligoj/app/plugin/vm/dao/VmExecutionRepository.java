@@ -22,4 +22,14 @@ public interface VmExecutionRepository extends RestRepository<VmExecution, Integ
 			+ "INNER JOIN s.node AS n WHERE (n.id = :node OR n.id LIKE CONCAT(:node, ':%'))"
 			+ " AND ve.id = (SELECT MAX(id) FROM VmExecution WHERE subscription = s)")
 	List<VmExecution> findAllByNodeLast(String node);
+
+	/**
+	 * Return all executions related to given subscription and ordered from the most to the least recent date.
+	 * 
+	 * @param subscription
+	 *            The related subscription.
+	 * @return All executions associated to given subscription.
+	 */
+	@Query("FROM VmExecution WHERE subscription.id = :subscription ORDER BY id DESC")
+	List<VmExecution> findAllBySusbsciption(int subscription);
 }

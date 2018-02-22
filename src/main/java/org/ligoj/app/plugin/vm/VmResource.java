@@ -210,7 +210,7 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 			@PathParam("file") final String file) {
 		subscriptionResource.checkVisibleSubscription(subscription);
 		return AbstractToolPluginResource
-				.download(o -> writeHistory(o, vmExecutionRepository.findAllBy("subscription.id", subscription)), file)
+				.download(o -> writeHistory(o, vmExecutionRepository.findAllBySusbsciption(subscription)), file)
 				.build();
 	}
 
