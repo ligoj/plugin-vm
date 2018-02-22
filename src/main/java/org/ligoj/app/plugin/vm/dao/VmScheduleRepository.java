@@ -33,7 +33,7 @@ public interface VmScheduleRepository extends RestRepository<VmSchedule, Integer
 	int countBySubscription(int subscription);
 
 	/**
-	 * Return schedules linked to the related node or sub-node.
+	 * Return schedules linked to the related node or sub-node. Result is ordered by project.
 	 * 
 	 * @param node
 	 *            The node identifier to filter.
@@ -43,7 +43,7 @@ public interface VmScheduleRepository extends RestRepository<VmSchedule, Integer
 	 */
 	@Query("SELECT vs FROM VmSchedule vs INNER JOIN FETCH vs.subscription AS s INNER JOIN FETCH s.project AS p "
 			+ "INNER JOIN FETCH s.node AS n LEFT JOIN p.cacheGroups AS cpg LEFT JOIN cpg.group AS cg"
-			+ " WHERE n.id = :node OR n.id LIKE CONCAT(:node, ':%') AND " + ProjectRepository.VISIBLE_PROJECTS)
+			+ " WHERE n.id = :node OR n.id LIKE CONCAT(:node, ':%') AND " + ProjectRepository.VISIBLE_PROJECTS + " ORDER BY p.name")
 	List<VmSchedule> findAllByNode(String node, String user);
 
 }
