@@ -460,7 +460,7 @@ define(function () {
 			var operation;
 
 			// Operation menu
-			result += '<div class="btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
+			result += '<div class="hidden btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
 				current.$messages['service:vm:operation'] + '"><i class="fa fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
 				'<ul class="dropdown-menu dropdown-menu-right">';
 			// Add Off,On,Shutdown,Reset,Reboot,Suspend
@@ -618,25 +618,44 @@ define(function () {
 
 		/**
 		 * Execute a VM operation.
+		 * @param confirm {boolean}     When 'true' the execution request is sent immediately Otherwise the confirmation popup is show.
+		 * @param $button {jquery}      The related trigger button.
+		 * @param subscription {object} The subscription details.
+		 * @param operation {string}    The operation name.
 		 */
-		serviceVmOperation: function () {
-			var subscription = current.$super('subscriptions').fnGetData($(this).closest('tr')[0]);
-			var operation = $(this).attr('data-operation');
-			var id = subscription.id;
-			var $button = $(this);
-			$button.attr('disabled', 'disabled').find('.fa').addClass('faa-flash animated');
-			$.ajax({
-				dataType: 'json',
-				url: REST_PATH + 'service/vm/' + id + '/' + operation,
-				contentType: 'application/json',
-				type: 'POST',
-				success: function () {
-					notifyManager.notify(Handlebars.compile(current.$messages['vm-operation-success'])([id, operation]));
-				},
-				complete: function () {
-					$button.removeAttr('disabled').find('.fa').removeClass('faa-flash animated');
-				}
-			});
+		serviceVmOperation: function (confirm, $button, subscription, operation) {
+			if (confirm === true) {
+				var id = subscription.id;
+				$button.attr('disabled', 'disabled').find('.fa').addClass('faa-flash animated');
+				$.ajax({
+					dataType: 'json',
+					url: REST_PATH + 'service/vm/' + id + '/' + operation,
+					contentType: 'application/json',
+					type: 'POST',
+					success: function () {
+						notifyManager.notify(Handlebars.compile(current.$messages['vm-operation-success'])([id, current.$messages['service:vm:' + operation.toLowerCase()]]));
+					},
+					complete: function () {
+						$button.removeAttr('disabled').find('.fa').removeClass('faa-flash animated');
+					}
+				});
+			} else {
+				$button = $(this);
+				var subscription = current.$super('subscriptions').fnGetData($button.closest('tr')[0]);
+				var operation = $button.attr('data-operation');
+				var $popup = _('vm-execute-popup');
+				var operationLabel = current.$messages['service:vm:' + operation.toLowerCase()];
+				_('vm-execute-vm-name').val(subscription.data.vm.name);
+				_('vm-execute-vm-id').val(subscription.data.vm.id);
+				_('vm-execute-operation').val(operationLabel).next('.help-block').text(current.$messages['service:vm:' + operation.toLowerCase() + '-help']);
+				$popup.find('.btn-primary').html('<i class="' + current.vmOperations[operation.toUpperCase()] + '"></i> ' + operationLabel);
+				$popup.off('submit.vm-execute').on('submit.vm-execute', function(e) {
+					e.preventDefault();
+					current.serviceVmOperation(true, $button, subscription, operation);
+					$(this).modal('hide');
+					return false;
+				}).modal('show');
+			}
 		},
 
 

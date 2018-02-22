@@ -22,6 +22,7 @@ define({
 	"service:vm:operation": "Opération",
 	"service:vm:operation-executed-help": "Les opérations demandées sont adaptées au status de la VM au moment du déclenchement",
 	"service:vm:operation-requested": "Demandée",
+	"service:vm:operation-execute": "Executer",
 	"service:vm:operation-executed": "Exécutée",
 	"service:vm:schedule": "Programmer",
 	"service:vm:cron": "Expression CRON",

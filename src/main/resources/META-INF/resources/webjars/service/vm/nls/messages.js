@@ -24,6 +24,7 @@ define({
 		"service:vm:operation": "Operation",
 		"service:vm:operation-executed-help": "Effective executed operations depends on the state of the VM a execution time",
 		"service:vm:operation-requested": "Requested",
+		"service:vm:operation-execute": "Execute",
 		"service:vm:operation-executed": "Executed",
 		"service:vm:schedule": "Schedule",
 		"service:vm:cron": "CRON Expression",
