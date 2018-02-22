@@ -28,7 +28,7 @@ public class VmExecution extends AbstractPersistable<Integer> {
 	 * Execution date
 	 */
 	@NotNull
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 
 	/**
