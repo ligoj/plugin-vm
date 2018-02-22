@@ -650,7 +650,9 @@ define(function () {
 				_('vm-execute-vm-id').val(subscription.data.vm.id);
 				_('vm-execute-operation').val(operationLabel).next('.help-block').text(current.$messages['service:vm:' + operation.toLowerCase() + '-help']);
 				$popup.find('.btn-primary').html('<i class="' + current.vmOperations[operation.toUpperCase()] + '"></i> ' + operationLabel);
-				$popup.off('submit.vm-execute').on('submit.vm-execute', function(e) {
+				$popup.off('shown.bs.modal').on('shown.bs.modal', function (event) {
+					$popup.find('.btn-primary').trigger('focus');
+				}).off('submit.vm-execute').on('submit.vm-execute', function(e) {
 					e.preventDefault();
 					current.serviceVmOperation(true, $button, subscription, operation);
 					$(this).modal('hide');
