@@ -376,7 +376,8 @@ public class VmResourceTest extends AbstractServerTest {
 
 		// No last execution available
 		Assertions.assertTrue(lines.get(1).matches(
-				"\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;;;;;;;;;2050/01/01 00:00:00;2524604400000"));
+				"\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;;;;;;;;;2050/01/01 00:00:00;2524604400000"),
+				"Was : " + lines.get(1));
 		output.close();
 
 		// Manual execution
@@ -404,7 +405,8 @@ public class VmResourceTest extends AbstractServerTest {
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(2, lines.size());
 		Assertions.assertTrue(lines.get(1).matches(
-				"\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;.+;.+;SHUTDOWN;vm1;_system;true;;;2050/01/01 00:00:00;2524604400000"));
+				"\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;.+;.+;SHUTDOWN;vm1;_system;true;;;2050/01/01 00:00:00;2524604400000"),
+				"Was : " + lines.get(1));
 
 		// Next execution where schedule CRON has been updated
 		vmScheduleRepository.findBy("subscription.id", subscription).setCron("INVALID");
@@ -440,7 +442,8 @@ public class VmResourceTest extends AbstractServerTest {
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(3, lines.size());
 		Assertions.assertTrue(lines.get(2).matches(
-				"\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2049;ON;.+;.+;ON;;_system;true;;;2049/01/01 00:00:00;2493068400000"));
+				"\\d+;\\d+;gfi-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2049;ON;.+;.+;ON;;_system;true;;;2049/01/01 00:00:00;2493068400000"),
+				"Was : " + lines.get(2));
 	}
 
 	/**

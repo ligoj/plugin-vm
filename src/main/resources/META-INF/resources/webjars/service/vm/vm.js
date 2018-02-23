@@ -642,8 +642,8 @@ define(function () {
 				});
 			} else {
 				$button = $(this);
-				var subscription = current.$super('subscriptions').fnGetData($button.closest('tr')[0]);
-				var operation = $button.attr('data-operation');
+				subscription = current.$super('subscriptions').fnGetData($button.closest('tr')[0]);
+				operation = $button.attr('data-operation');
 				var $popup = _('vm-execute-popup');
 				var operationLabel = current.$messages['service:vm:' + operation.toLowerCase()];
 				_('vm-execute-vm-name').val(subscription.data.vm.name);
