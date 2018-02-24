@@ -1,7 +1,6 @@
 package org.ligoj.app.plugin.vm.snapshot;
 
 import java.util.List;
-import java.util.Map;
 
 import org.ligoj.app.plugin.vm.model.VmSnapshotStatus;
 
@@ -13,32 +12,24 @@ public interface Snapshotting {
 	/**
 	 * Create a snapshot. Task runner API is used to share the progress.
 	 * 
-	 * @param subscription
-	 *            The related subscription.
-	 * @param parameters
-	 *            The subscription parameters.
-	 * @param transientTask
-	 *            A transient instance of the related task, and also linked to the given subscription. Note it is a
-	 *            read-only view.
+	 * @param task
+	 *            A transient instance of the related task, and also linked to a subscription. Note it is a read-only
+	 *            view.
 	 * @throws Exception
 	 *             Any error while creating the snapshot.
 	 */
-	void snapshot(int subscription, Map<String, String> parameters, VmSnapshotStatus transientTask) throws Exception;
+	void snapshot(VmSnapshotStatus task) throws Exception;
 
 	/**
 	 * Delete a snapshot. Task runner API is used to share the progress.
 	 * 
-	 * @param subscription
-	 *            The related subscription.
-	 * @param parameters
-	 *            The subscription parameters.
-	 * @param transientTask
-	 *            A transient instance of the related task, and also linked to the given subscription. Note it is a
-	 *            read-only view.
+	 * @param task
+	 *            A transient instance of the related task, and also linked to a subscription. Note it is a read-only
+	 *            view.
 	 * @throws Exception
 	 *             Any error while deleting the snapshot.
 	 */
-	void delete(int subscription, Map<String, String> parameters, VmSnapshotStatus transientTask) throws Exception;
+	void delete(VmSnapshotStatus task) throws Exception;
 
 	/**
 	 * Return all snapshots matching to the given criteria and also associated to the given subscription.

@@ -95,7 +95,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
 			securityHelper.setUserName(user);
-			snap.snapshot(subscription, subscriptionResource.getParametersNoCheck(subscription), task);
+			snap.snapshot(task);
 			log.info("Snapshot requested for subscription {} finished", subscription);
 			return null;
 		});
@@ -133,7 +133,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
 			securityHelper.setUserName(user);
-			snap.delete(subscription, subscriptionResource.getParametersNoCheck(subscription), task);
+			snap.delete(task);
 			log.info("Snapshot deletion requested for subscription {}, snapshot {} finished", subscription, snapshot);
 			return null;
 		});

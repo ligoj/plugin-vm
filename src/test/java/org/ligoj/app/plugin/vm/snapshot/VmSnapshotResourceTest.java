@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.transaction.Transactional;
 
@@ -81,7 +80,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 		new Snapshotting() {
 
 			@Override
-			public void snapshot(int subscription, Map<String, String> parameters, VmSnapshotStatus transientTask) {
+			public void snapshot(final VmSnapshotStatus transientTask) {
 				// No implementation
 			}
 
@@ -92,8 +91,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 			}
 
 			@Override
-			public void delete(int subscription, Map<String, String> parameters, VmSnapshotStatus transientTask)
-					throws Exception {
+			public void delete(final VmSnapshotStatus transientTask) throws Exception {
 				// No implementation
 			}
 		}.completeStatus(null);
@@ -107,13 +105,11 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 		}).getMessage());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void create() throws Exception {
 		status = resource.create(subscription, true);
 		Thread.sleep(200);
-		Mockito.verify(service).snapshot(ArgumentMatchers.eq(subscription), ArgumentMatchers.any(Map.class),
-				ArgumentMatchers.any(VmSnapshotStatus.class));
+		Mockito.verify(service).snapshot(ArgumentMatchers.any(VmSnapshotStatus.class));
 		Assertions.assertFalse(status.isFinishedRemote());
 		Assertions.assertTrue(status.isStop());
 		Assertions.assertEquals(getAuthenticationName(), status.getAuthor());
@@ -129,13 +125,11 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 		Assertions.assertFalse(resource.getTask(subscription).isFinished());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void delete() throws Exception {
 		status = resource.delete(subscription, "snapshot-id");
 		Thread.sleep(200);
-		Mockito.verify(service).delete(ArgumentMatchers.eq(subscription), ArgumentMatchers.any(Map.class),
-				ArgumentMatchers.any(VmSnapshotStatus.class));
+		Mockito.verify(service).delete(ArgumentMatchers.any(VmSnapshotStatus.class));
 		Assertions.assertFalse(status.isFinishedRemote());
 		Assertions.assertFalse(status.isStop());
 		Assertions.assertEquals(getAuthenticationName(), status.getAuthor());
