@@ -138,7 +138,7 @@ define(function () {
 					orderable: false,
 					width: '40px',
 					render: function (_i, _j, data) {
-						return data.operation ? '' : ('<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>');
+						return data.pending ? '' : ('<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>');
 					}
 				}],
 				buttons: [{
