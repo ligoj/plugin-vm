@@ -369,7 +369,7 @@ define(function () {
 				}
 			});
 			// VM operation schedule helper in popup
-			_('vm-schedules-popup').on('show.bs.modal', function () {
+			_('vm-schedules-popup').on('show.bs.modal', function (event) {
 				validationManager.reset($(this));
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
