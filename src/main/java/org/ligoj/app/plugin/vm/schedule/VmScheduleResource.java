@@ -191,7 +191,7 @@ public class VmScheduleResource implements InitializingBean {
 	 *             When CRON cannot be parsed.
 	 */
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
-	public List<VmScheduleVo> findAll(@PathParam("subscription") final int subscription) throws ParseException {
+	public List<VmScheduleVo> findAll(final int subscription) throws ParseException {
 		final List<VmScheduleVo> schedules = new ArrayList<>();
 		final Date now = DateUtils.newCalendar().getTime();
 		for (final VmSchedule schedule : repository.findBySubscription(subscription)) {
