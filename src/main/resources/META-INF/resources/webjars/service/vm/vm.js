@@ -26,21 +26,21 @@ define(function () {
 		 * Managed status.
 		 */
 		vmStatus: {
-			powered_on: 'fa fa-play text-success',
-			powered_off: 'fa fa-stop text-danger',
-			suspended: 'fa fa-pause text-warning'
+			powered_on: 'fas fa-play text-success',
+			powered_off: 'fas fa-stop text-danger',
+			suspended: 'fas fa-pause text-warning'
 		},
 
 		/**
 		 * Managed operations.
 		 */
 		vmOperations: {
-			OFF: 'fa fa-power-off',
-			ON: 'fa fa-play',
-			SUSPEND: 'fa fa-pause',
-			SHUTDOWN: 'fa fa-stop',
-			RESET: 'fa fa-repeat',
-			REBOOT: 'fa fa-refresh'
+			OFF: 'fas fa-power-off',
+			ON: 'fas fa-play',
+			SUSPEND: 'fas fa-pause',
+			SHUTDOWN: 'fas fa-stop',
+			RESET: 'fas fa-redo-alt',
+			REBOOT: 'fas fa-sync-alt'
 		},
 
 		initialize: function () {
@@ -105,7 +105,7 @@ define(function () {
 							for (var index in volumes) {
 								var volume = volumes[index];
 								total += volume.size || 0;
-								result += ' <span data-toggle="tooltip" title="Id: ' + volume.id + '<br>Name: ' + volume.name + '"><i class="fa fa-database"></i> ' + formatManager.formatSize(volume.size * 1024 * 1024 * 1024, 3) + ' ' + volume.name + '</span>';
+								result += ' <span data-toggle="tooltip" title="Id: ' + volume.id + '<br>Name: ' + volume.name + '"><i class="fas fa-database"></i> ' + formatManager.formatSize(volume.size * 1024 * 1024 * 1024, 3) + ' ' + volume.name + '</span>';
 							}
 							if (mode === 'display') {
 								return formatManager.formatSize(total * 1024 * 1024 * 1024, 3) + result;
@@ -124,12 +124,12 @@ define(function () {
 						if (mode === 'display') {
 							status = (status && current.$messages['service:vm:snapshot-status-' + status]) || status;
 							if (current.isPending(data)) {
-								return '<i class="fa fa-circle-o-notch fa-spin"></i> ' + status;
+								return '<i class="fas fa-circle-notch fa-spin"></i> ' + status;
 							}
 							if (data.available) {
-								return '<i class="fa fa-check text-success"></i> ' + status;
+								return '<i class="fas fa-check text-success"></i> ' + status;
 							}
-							return '<i class="fa fa-times text-danger"></i> ' + status;
+							return '<i class="fas fa-times text-danger"></i> ' + status;
 						}
 						return status;
 					}
@@ -138,7 +138,7 @@ define(function () {
 					orderable: false,
 					width: '40px',
 					render: function (_i, _j, data) {
-						return data.pending ? '' : ('<a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>');
+						return data.pending ? '' : ('<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-delete'] + '"></i></a>');
 					}
 				}],
 				buttons: [{
@@ -148,11 +148,11 @@ define(function () {
 					autoClose: true,
 					buttons: [{
 						className: 'vm-snapshot-create-no-stop',
-						text: current.$messages['service:vm:snapshot-create-no-stop'] + '<i class="fa fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-no-stop-help'] +'"></i>',
+						text: current.$messages['service:vm:snapshot-create-no-stop'] + '<i class="fas fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-no-stop-help'] +'"></i>',
 						action: current.createSnapshot
 					}, {
 						className: 'vm-snapshot-create-stop',
-						text: current.$messages['service:vm:snapshot-create-stop'] + '<i class="fa fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-stop-help'] +'"></i>',
+						text: current.$messages['service:vm:snapshot-create-stop'] + '<i class="fas fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-stop-help'] +'"></i>',
 						action: current.createSnapshot
 					}]
 				}],
@@ -246,9 +246,9 @@ define(function () {
 					orderable: false,
 					width: '40px',
 					render: function () {
-						var result = '<a class="update" data-toggle="modal" data-target="#vm-schedules-popup"><i class="fa fa-pencil" data-toggle="tooltip" title="';
+						var result = '<a class="update" data-toggle="modal" data-target="#vm-schedules-popup"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="';
 						result += current.$messages.update;
-						result += '"></i></a> <a class="delete"><i class="fa fa-trash" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
+						result += '"></i></a> <a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
 						return result;
 					}
 				}],
@@ -461,7 +461,7 @@ define(function () {
 
 			// Operation menu
 			result += '<div class="hidden btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
-				current.$messages['service:vm:operation'] + '"><i class="fa fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
+				current.$messages['service:vm:operation'] + '"><i class="fas fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
 				'<ul class="dropdown-menu dropdown-menu-right">';
 			// Add Off,On,Shutdown,Reset,Reboot,Suspend
 			for (operation in current.vmOperations) {
@@ -473,7 +473,7 @@ define(function () {
 
 			// Configuration link
 			result += '<a href="#/home/project/' + subscription.project + '/subscription/' + subscription.id + '" class="feature configure-trigger" data-toggle="tooltip" title="' + current.$messages.configure + '">' +
-				'<i class="fa fa-gear"></i></a>';
+				'<i class="fas fa-cog"></i></a>';
 			return result;
 		},
 
@@ -501,7 +501,7 @@ define(function () {
 			return '<i data-toggle="tooltip" data-html="true" title="' + (current.$messages['service:vm:' + status] || status) +
 				(busy ? ' (' + current.$messages['service:vm:busy'] + ')' : '') +
 				(deployed ? '<br>[' + current.$messages['service:vm:deployed'] + ']' : '') + '" class="' +
-				(current.vmStatus[status] || 'fa fa-question-circle-o text-muted') +
+				(current.vmStatus[status] || 'far fa-question-circle text-muted') +
 				(busy ? ' faa-flash animated' : '') + (deployed ? ' deployed' : '') + ' fa-fw service-vm-status"></i>';
 		},
 
@@ -515,7 +515,7 @@ define(function () {
 				'private': 'lock'
 			};
 			networks.forEach(function (network) {
-				result.push('<i class="fa fa-' + (networkTypeToIcon[network.type] || 'slash') + '"></i> ' + network.ip + (network.dns ? ' [' + network.dns + ']' : ''));
+				result.push('<i class="fas fa-' + (networkTypeToIcon[network.type] || 'slash') + '"></i> ' + network.ip + (network.dns ? ' [' + network.dns + ']' : ''));
 			});
 
 			return result.join(', ');
@@ -737,7 +737,7 @@ define(function () {
 		disableSnapshot: function () {
 			var $button = current.$super('$view').find('.vm-snapshot-create').attr('disabled', 'disabled').addClass('disabled').addClass('polling');
 			$button.find('i').remove();
-			$button.find('span').first().prepend('<i class="fa fa-circle-o-notch fa-spin"></i> ');
+			$button.find('span').first().prepend('<i class="fas fa-circle-notch fa-spin"></i> ');
 			return $button;
 		},
 

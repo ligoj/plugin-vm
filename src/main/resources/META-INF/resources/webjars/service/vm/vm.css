@@ -18,7 +18,7 @@ th.next-execution {
 .masonry-container .node.service-vm table.subscriptions th.features {
 	width: 62px;
 }
-.fa.deployed:after {
+i.deployed:after {
 	position: relative;
 	content: "///";
 	color: orange;
