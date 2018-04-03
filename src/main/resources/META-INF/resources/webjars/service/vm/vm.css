@@ -26,7 +26,7 @@ i.deployed:after {
     float: left;
     width: 0;
 }
-.service-vm-status {
+.masonry-container .service-vm-status {
 	text-shadow: black 0 0 1px;
 }
 
