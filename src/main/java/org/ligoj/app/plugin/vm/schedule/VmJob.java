@@ -95,7 +95,7 @@ public class VmJob extends QuartzJobBean {
 	protected static Object[] parse(final String source) {
 		try {
 			return new MessageFormat(TRIGGER_ID_PARSER).parse(source);
-		} catch (final ParseException e) {
+		} catch (@SuppressWarnings("unused") final ParseException e) {
 			// Ignore the parse error
 			return new Object[2];
 		}
