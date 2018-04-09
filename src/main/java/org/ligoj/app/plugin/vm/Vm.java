@@ -14,6 +14,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Vm extends DescribedBean<String> {
+
+	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private VmStatus status;
 
 	/**

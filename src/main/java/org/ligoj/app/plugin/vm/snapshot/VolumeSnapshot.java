@@ -14,6 +14,11 @@ import lombok.Setter;
 public class VolumeSnapshot extends NamedBean<String> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * GiB volume size
 	 */
 	private int size;

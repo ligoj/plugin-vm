@@ -18,6 +18,11 @@ import lombok.Setter;
 public class Snapshot extends DescribedBean<String> {
 
 	/**
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * User requesting this snapshot. May be <code>null</code> when system requested it.
 	 */
 	private SimpleUser author;

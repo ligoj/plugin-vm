@@ -290,7 +290,7 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 				writer.write(String.valueOf(next.getTime()));
 			} catch (final ParseException pe) {
 				// Non blocking error
-				log.error("Invalid CRON expression {}", schedule.getCron());
+				log.error("Invalid CRON expression {} : {}", schedule.getCron(), pe.getMessage());
 				writer.write(";ERROR;ERROR");
 			}
 		}

@@ -230,7 +230,7 @@ public class VmResourceTest extends AbstractServerTest {
 			}
 
 			@Override
-			public Vm getVmDetails(Map<String, String> parameters) throws Exception {
+			public Vm getVmDetails(Map<String, String> parameters) {
 				return null;
 			}
 		}.execute(execution);

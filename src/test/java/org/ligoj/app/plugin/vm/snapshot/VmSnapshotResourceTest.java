@@ -91,7 +91,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 			}
 
 			@Override
-			public void delete(final VmSnapshotStatus transientTask) throws Exception {
+			public void delete(final VmSnapshotStatus transientTask) {
 				// No implementation
 			}
 		}.completeStatus(null);
