@@ -421,7 +421,6 @@ define(function () {
 				current.deleteSchedule(current.table.fnGetData($(this).closest('tr')[0]));
 			});
 			_('vm-snapshots').on('click', 'tr .delete', function () {
-				var $tr = $(this).closest('tr');
 				var snapshot = current.snapshotTable.fnGetData($(this).closest('tr')[0]);
 				snapshot.operation = 'delete';
 				snapshot.statusText = 'deleting';
@@ -544,10 +543,10 @@ define(function () {
 
 		/**
 		 * Delete a snapshot.
-		 * @param {object} Snapshot to delete.
+		 * @param {object} snapshot Snapshot to delete.
 		 */
 		deleteSnapshot: function (snapshot) {
-			var $button = current.disableSnapshot();
+			current.disableSnapshot();
 			var subscription = current.model.id;
 			$.ajax({
 				type: 'DELETE',

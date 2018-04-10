@@ -28,7 +28,7 @@ public interface VmServicePlugin extends ServicePlugin {
 	 *             context.
 	 */
 	@Deprecated(since = "1.3.1")
-	default void execute(int subscription, VmOperation operation) throws Exception {
+	default void execute(int subscription, VmOperation operation) throws Exception { // NOSONAR
 		// nothing to do
 	}
 
@@ -41,7 +41,7 @@ public interface VmServicePlugin extends ServicePlugin {
 	 * @throws Exception
 	 *             When details failed, the subscription is considered as broken.
 	 */
-	Vm getVmDetails(final Map<String, String> parameters) throws Exception;
+	Vm getVmDetails(final Map<String, String> parameters) throws Exception; // NOSONAR
 
 	/**
 	 * Execute the given execution. The current execution context can be completed : VM identifier or "statusText".

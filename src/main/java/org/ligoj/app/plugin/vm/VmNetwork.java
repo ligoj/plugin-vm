@@ -3,6 +3,8 @@
  */
 package org.ligoj.app.plugin.vm;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,10 +13,15 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class VmNetwork {
+public class VmNetwork implements Serializable {
+
 	/**
-	 * The network tag. Can be public, private, <code>null</code> or something
-	 * else.
+	 * SID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * The network tag. Can be public, private, <code>null</code> or something else.
 	 */
 	private String type;
 
