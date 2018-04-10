@@ -9,7 +9,7 @@
 [![Quality Gate](https://sonarcloud.io/api/badges/gate?key=org.ligoj.plugin:plugin-vm)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-vm)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bc580f38cbcc4dc3be7d2602c8b77fd4)](https://www.codacy.com/app/ligoj/plugin-vm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ligoj/plugin-vm&amp;utm_campaign=Badge_Grade)
 [![CodeFactor](https://www.codefactor.io/repository/github/ligoj/plugin-vm/badge)](https://www.codefactor.io/repository/github/ligoj/plugin-vm)
-[![License](http://img.shields.io/:license-mit-blue.svg)](http://gus.mit-license.org/)
+[![License](http://img.shields.io/:license-mit-blue.svg)](http://fabdouglas.mit-license.org/)
 
 [Ligoj](https://github.com/ligoj/ligoj) VM service plugin
 Provides the following services :
