@@ -21,7 +21,7 @@ public interface Snapshotting {
 	 * @throws Exception
 	 *             Any error while creating the snapshot.
 	 */
-	void snapshot(VmSnapshotStatus task) throws Exception;
+	void snapshot(VmSnapshotStatus task) throws Exception; // NOSONAR
 
 	/**
 	 * Delete a snapshot. Task runner API is used to share the progress.
@@ -32,7 +32,7 @@ public interface Snapshotting {
 	 * @throws Exception
 	 *             Any error while deleting the snapshot.
 	 */
-	void delete(VmSnapshotStatus task) throws Exception;
+	void delete(VmSnapshotStatus task) throws Exception; // NOSONAR
 
 	/**
 	 * Return all snapshots matching to the given criteria and also associated to the given subscription.
@@ -46,7 +46,7 @@ public interface Snapshotting {
 	 * @throws Exception
 	 *             Any error while finding the snapshots.
 	 */
-	List<Snapshot> findAllSnapshots(int subscription, String criteria) throws Exception;
+	List<Snapshot> findAllSnapshots(int subscription, String criteria) throws Exception; // NOSONAR
 
 	/**
 	 * Complete the task details from the remote state of this task.
