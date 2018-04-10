@@ -1,3 +1,6 @@
+/*
+ * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
+ */
 define({
 	"configure-present": 'Configurer (a déjà une configuration)',
 	"service:vm": "Virtualisation",
