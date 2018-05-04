@@ -458,32 +458,9 @@ define(function () {
 		 * Render VM operations and scheduler.
 		 */
 		renderFeatures: function (subscription) {
-			var result = '';
-			var operation;
-
-			// Operation menu
-			result += '<div class="hidden btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
-				current.$messages['service:vm:operation'] + '"><i class="fas fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
-				'<ul class="dropdown-menu dropdown-menu-right">';
-			// Add Off,On,Shutdown,Reset,Reboot,Suspend
-			for (operation in current.vmOperations) {
-				if (current.vmOperations.hasOwnProperty(operation)) {
-					result += '<li>' + current.renderServiceServiceVmOperationButton(current.vmOperations[operation], operation) + '</li>';
-				}
-			}
-			result += '</ul></div>';
-
 			// Configuration link
-			result += '<a href="#/home/project/' + subscription.project + '/subscription/' + subscription.id + '" class="feature configure-trigger" data-toggle="tooltip" title="' + current.$messages.configure + '">' +
+			return '<a href="#/home/project/' + subscription.project + '/subscription/' + subscription.id + '" class="feature configure-trigger" data-toggle="tooltip" title="' + current.$messages.configure + '">' +
 				'<i class="fas fa-cog"></i></a>';
-			return result;
-		},
-
-		renderServiceServiceVmOperationButton: function (icon, operation) {
-			return '<a class="feature service-vm-operation service-vm-operation-' + operation.toLowerCase() +
-				'" data-operation="' + operation + '" data-toggle="tooltip" title="' + current.$messages['service:vm:' +
-					operation.toLowerCase() + '-help'] + '"><i class="fa-fw menu-icon ' + icon + '"></i> ' + current.$messages['service:vm:' +
-					operation.toLowerCase()] + '</a>';
 		},
 
 		/**
@@ -499,12 +476,38 @@ define(function () {
 			} else {
 				$td.find('.configure-trigger').tooltip('hide').attr('title', current.$messages.configure).removeClass('text-danger');
 			}
-			$td.find('.feature').removeClass('hidden');
+
+			// Complete the operation menu
+			current.renderVmOperationButtons($tr.find('td.features'));
+
 			return '<i data-toggle="tooltip" data-html="true" title="' + (current.$messages['service:vm:' + status] || status) +
 				(busy ? ' (' + current.$messages['service:vm:busy'] + ')' : '') +
 				(deployed ? '<br>[' + current.$messages['service:vm:deployed'] + ']' : '') + '" class="' +
 				(current.vmStatus[status] || 'far fa-question-circle text-muted') +
 				(busy ? ' faa-flash animated' : '') + (deployed ? ' deployed' : '') + ' fa-fw service-vm-status"></i>';
+		},
+
+		renderVmOperationButtons: function ($td) {
+			var operationHtml = '<div class="btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
+				current.$messages['service:vm:operation'] + '"><i class="fas fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
+				'<ul class="dropdown-menu dropdown-menu-right">';
+
+			// Add Off,On,Shutdown,Reset,Reboot,Suspend
+			var operation;
+			for (operation in current.vmOperations) {
+				if (current.vmOperations.hasOwnProperty(operation)) {
+					operationHtml += '<li>' + current.renderServiceServiceVmOperationButton(current.vmOperations[operation], operation) + '</li>';
+				}
+			}
+			operationHtml += '</ul></div>';
+			$td.find('.feature').eq(0).before($(operationHtml));
+		},
+
+		renderServiceServiceVmOperationButton: function (icon, operation) {
+			return '<a class="feature service-vm-operation service-vm-operation-' + operation.toLowerCase() +
+				'" data-operation="' + operation + '" data-toggle="tooltip" title="' + current.$messages['service:vm:' +
+					operation.toLowerCase() + '-help'] + '"><i class="fa-fw menu-icon ' + icon + '"></i> ' + current.$messages['service:vm:' +
+					operation.toLowerCase()] + '</a>';
 		},
 
 		/**
