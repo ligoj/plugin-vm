@@ -259,7 +259,7 @@ public class VmScheduleResource implements InitializingBean {
 
 	private VmSchedule checkAndSave(final int subscription, final VmScheduleVo schedule, final VmSchedule entity) {
 		// Check the subscription is visible
-		final Subscription subscriptionEntity = subscriptionResource.checkVisibleSubscription(subscription);
+		final Subscription subscriptionEntity = subscriptionResource.checkVisible(subscription);
 
 		if (schedule.getCron().split(" ").length == 6) {
 			// Add the missing "seconds" part
@@ -300,7 +300,7 @@ public class VmScheduleResource implements InitializingBean {
 	public void delete(@PathParam("subscription") final int subscription, @PathParam("id") final int schedule)
 			throws SchedulerException {
 		// Check the subscription is visible
-		subscriptionResource.checkVisibleSubscription(subscription);
+		subscriptionResource.checkVisible(subscription);
 
 		// Check the schedule is related to the subscription
 		checkOwnership(subscription, schedule);

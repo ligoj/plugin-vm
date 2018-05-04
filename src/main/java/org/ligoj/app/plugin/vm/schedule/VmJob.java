@@ -84,22 +84,22 @@ public class VmJob extends QuartzJobBean {
 	}
 
 	/**
-	 * Parses text from the beginning of the given string to produce an object
-	 * array. The method may not use the entire text of the given string.
+	 * Parses text from the beginning of the given string to produce an object array. The method may not use the entire
+	 * text of the given string.
 	 * <p>
-	 * See the {@link MessageFormat#parse(String, ParsePosition)} method for
-	 * more information on message parsing.
+	 * See the {@link MessageFormat#parse(String, ParsePosition)} method for more information on message parsing.
 	 *
 	 * @param source
 	 *            A <code>String</code> whose beginning should be parsed.
-	 * @return An <code>Object</code> array parsed from the string.
-	 *         ParseException is caught to return an 2 sized array object.
+	 * @return An <code>Object</code> array parsed from the string. {@link ParseException} is caught to return an 2
+	 *         sized array object.
 	 */
 	protected static Object[] parse(final String source) {
 		try {
 			return new MessageFormat(TRIGGER_ID_PARSER).parse(source);
-		} catch (@SuppressWarnings("unused") final ParseException e) {
+		} catch (final ParseException e) {
 			// Ignore the parse error
+			log.debug("Unable to parse job source", e);
 			return new Object[2];
 		}
 	}

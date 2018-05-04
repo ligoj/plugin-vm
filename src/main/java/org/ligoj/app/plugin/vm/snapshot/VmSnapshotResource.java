@@ -58,6 +58,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	protected SubscriptionRepository subscriptionRepository;
 
 	@Autowired
+	@Getter
 	protected SubscriptionResource subscriptionResource;
 
 	@Autowired
@@ -81,7 +82,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	public VmSnapshotStatus create(@PathParam("subscription") final int subscription,
 			@QueryParam("stop") @DefaultValue("false") final boolean stop) {
 		// Check the visibility and get the contract implementation
-		final Snapshotting snap = getSnapshot(subscriptionResource.checkVisibleSubscription(subscription).getNode());
+		final Snapshotting snap = getSnapshot(subscriptionResource.checkVisible(subscription).getNode());
 		log.info("New snapshot requested for subscription {}", subscription);
 		final VmSnapshotStatus task = startTask(subscription, t -> {
 			t.setWorkload(1);
@@ -119,7 +120,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	public VmSnapshotStatus delete(@PathParam("subscription") final int subscription,
 			@PathParam("snapshot") final String snapshot) {
 		// Check the visibility and get the contract implementation
-		final Snapshotting snap = getSnapshot(subscriptionResource.checkVisibleSubscription(subscription).getNode());
+		final Snapshotting snap = getSnapshot(subscriptionResource.checkVisible(subscription).getNode());
 		log.info("Snapshot deletion requested for subscription {}, snapshot {}", subscription, snapshot);
 		final VmSnapshotStatus task = startTask(subscription, t -> {
 			t.setWorkload(1);
@@ -159,8 +160,8 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	public List<Snapshot> findAll(@PathParam("subscription") final int subscription,
 			@PathParam("q") @DefaultValue("") final String criteria) throws Exception {
 		// Check the visibility and get the contract implementation
-		return getSnapshot(subscriptionResource.checkVisibleSubscription(subscription).getNode())
-				.findAllSnapshots(subscription, criteria);
+		return getSnapshot(subscriptionResource.checkVisible(subscription).getNode()).findAllSnapshots(subscription,
+				criteria);
 	}
 
 	@Override
@@ -171,10 +172,10 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	@Override
 	@GET
 	@Path("task")
-	public VmSnapshotStatus getTask(@PathParam("subscription") final Integer subscription) {
+	public VmSnapshotStatus getTask(@PathParam("subscription") final int subscription) {
 		final VmSnapshotStatus task = LongTaskRunnerSubscription.super.getTask(subscription);
 		if (task != null) {
-			getSnapshot(subscriptionResource.checkVisibleSubscription(subscription).getNode()).completeStatus(task);
+			getSnapshot(task.getLocked().getNode()).completeStatus(task);
 		}
 		return task;
 	}
@@ -185,7 +186,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 		if (task.isFailed()) {
 			task.setFinishedRemote(true);
 		} else if (!task.isFinishedRemote()) {
-			getSnapshot(subscriptionResource.checkVisibleSubscription(task.getLocked().getId()).getNode())
+			getSnapshot(subscriptionResource.checkVisible(task.getLocked().getId()).getNode())
 					.completeStatus(task);
 		}
 		return task.isFinishedRemote();

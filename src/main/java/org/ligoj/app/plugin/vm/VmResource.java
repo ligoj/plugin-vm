@@ -120,7 +120,7 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 	@Transactional
 	public Integer execute(@PathParam("subscription") final int subscription,
 			@PathParam("operation") final VmOperation operation) {
-		return execute(subscriptionResource.checkVisibleSubscription(subscription), operation);
+		return execute(subscriptionResource.checkVisible(subscription), operation);
 	}
 
 	/**
@@ -186,7 +186,7 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public VmConfigurationVo getConfiguration(@PathParam("subscription") final int subscription) throws ParseException {
 		// Check the subscription is visible
-		final Subscription entity = subscriptionResource.checkVisibleSubscription(subscription);
+		final Subscription entity = subscriptionResource.checkVisible(subscription);
 
 		// Get the details
 		final VmConfigurationVo result = new VmConfigurationVo();
@@ -211,7 +211,7 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 	@Path("{subscription:\\d+}/{file:executions-.*.csv}")
 	public Response downloadHistoryReport(@PathParam("subscription") final int subscription,
 			@PathParam("file") final String file) {
-		subscriptionResource.checkVisibleSubscription(subscription);
+		subscriptionResource.checkVisible(subscription);
 		return AbstractToolPluginResource
 				.download(o -> writeHistory(o, vmExecutionRepository.findAllBySusbsciption(subscription)), file)
 				.build();

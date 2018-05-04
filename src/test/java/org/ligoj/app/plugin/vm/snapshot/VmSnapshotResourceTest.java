@@ -69,7 +69,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 		status = new VmSnapshotStatus();
 		resource = new VmSnapshotResource() {
 			@Override
-			public VmSnapshotStatus getTask(final Integer subscription) {
+			public VmSnapshotStatus getTask(final int subscription) {
 				return getTaskRepository().findBy("locked.id", subscription);
 			}
 		};
