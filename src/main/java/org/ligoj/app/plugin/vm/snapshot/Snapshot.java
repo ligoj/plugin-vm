@@ -47,7 +47,7 @@ public class Snapshot extends DescribedBean<String> {
 	private boolean available;
 
 	/**
-	 * Differs from the {@link #isAvailable()} when the snapshot is available from the provider side, but not yet
+	 * Differs from the {@link #available} when the snapshot is available from the provider side, but not yet
 	 * visible/available at client side.
 	 */
 	private boolean pending;
@@ -64,7 +64,8 @@ public class Snapshot extends DescribedBean<String> {
 	private Boolean stopRequested;
 
 	/**
-	 * Current status either collected at server side, either client side when there are several phases required to complete the task.
+	 * Current status either collected at server side, either client side when there are several phases required to
+	 * complete the task.
 	 */
 	private String statusText;
 }
