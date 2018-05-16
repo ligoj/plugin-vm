@@ -466,19 +466,21 @@ define(function () {
 		/**
 		 * Display the status of the VM
 		 */
-		renderDetailsFeatures: function (subscription, $tr, $td) {
+		renderDetailsFeatures: function (subscription, $tr, $features) {
 			var status = subscription.data.vm.status.toLowerCase();
 			var busy = subscription.data.vm.busy;
 			var deployed = status === 'powered_off' && subscription.data.vm.deployed;
 			if (subscription.data.schedules) {
 				// At least on schedule
-				$td.find('.configure-trigger').tooltip('hide').attr('title', current.$messages['configure-present']).addClass('text-danger');
+				$features.find('.configure-trigger').tooltip('hide').attr('title', current.$messages['configure-present']).addClass('text-danger');
 			} else {
-				$td.find('.configure-trigger').tooltip('hide').attr('title', current.$messages.configure).removeClass('text-danger');
+				$features.find('.configure-trigger').tooltip('hide').attr('title', current.$messages.configure).removeClass('text-danger');
 			}
 
 			// Complete the operation menu
-			current.renderVmOperationButtons($tr.find('td.features'));
+			if ($features.has('.feature.operations').length === 0) {
+				current.renderVmOperationButtons($features);
+			}
 
 			return '<i data-toggle="tooltip" data-html="true" title="' + (current.$messages['service:vm:' + status] || status) +
 				(busy ? ' (' + current.$messages['service:vm:busy'] + ')' : '') +
@@ -487,8 +489,8 @@ define(function () {
 				(busy ? ' faa-flash animated' : '') + (deployed ? ' deployed' : '') + ' fa-fw service-vm-status"></i>';
 		},
 
-		renderVmOperationButtons: function ($td) {
-			var operationHtml = '<div class="btn-group btn-link feature dropdown" data-container="body" data-toggle="tooltip" title="' +
+		renderVmOperationButtons: function ($features) {
+			var operationHtml = '<div class="btn-group btn-link feature dropdown operations" data-container="body" data-toggle="tooltip" title="' +
 				current.$messages['service:vm:operation'] + '"><i class="fas fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
 				'<ul class="dropdown-menu dropdown-menu-right">';
 
@@ -500,7 +502,7 @@ define(function () {
 				}
 			}
 			operationHtml += '</ul></div>';
-			$td.find('.feature').eq(0).before($(operationHtml));
+			$features.find('.feature').eq(0).before($(operationHtml));
 		},
 
 		renderServiceServiceVmOperationButton: function (icon, operation) {
