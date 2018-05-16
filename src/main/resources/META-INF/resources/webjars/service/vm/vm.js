@@ -490,7 +490,7 @@ define(function () {
 		},
 
 		renderVmOperationButtons: function ($features) {
-			var operationHtml = '<div class="btn-group btn-link feature dropdown operations" data-container="body" data-toggle="tooltip" title="' +
+			var operationHtml = '<div class="btn-group btn-link feature dropdown operations dropup" data-container="body" data-toggle="tooltip" title="' +
 				current.$messages['service:vm:operation'] + '"><i class="fas fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
 				'<ul class="dropdown-menu dropdown-menu-right">';
 
