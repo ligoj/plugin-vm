@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.vm;
+package org.ligoj.app.plugin.vm.execution;
 
 import java.util.Map;
 
@@ -12,7 +12,7 @@ import org.ligoj.app.plugin.vm.model.VmOperation;
 /**
  * Features of VM implementations.
  */
-public interface VmServicePlugin extends ServicePlugin {
+public interface VmExecutionServicePlugin extends ServicePlugin {
 
 	/**
 	 * Execute a VmOperation to the associated VM. If a virtual machine is writing to disk when it receives a Power Off

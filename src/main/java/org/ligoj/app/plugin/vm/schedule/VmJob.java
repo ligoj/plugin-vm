@@ -8,8 +8,8 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.ligoj.app.plugin.vm.VmResource;
 import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
+import org.ligoj.app.plugin.vm.execution.VmExecutionResource;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
@@ -45,14 +45,14 @@ public class VmJob extends QuartzJobBean {
 		context.getBean(SecurityHelper.class).setUserName(SecurityHelper.SYSTEM_USERNAME);
 
 		// Execute the operation
-		context.getBean(VmResource.class).execute(entity.getSubscription(), entity.getOperation());
+		context.getBean(VmExecutionResource.class).execute(entity.getSubscription(), entity.getOperation());
 		log.info("Succeed {} for schedule {}, subscription {}", entity.getOperation(), entity.getId(), entity.getSubscription().getId());
 	}
 
 	/**
 	 * Build and return the trigger identifier from the schedule and the
 	 * subscription.
-	 * 
+	 *
 	 * @param schedule
 	 *            The schedule entity.
 	 * @return the {@link String} identifier for the trigger.
@@ -63,7 +63,7 @@ public class VmJob extends QuartzJobBean {
 
 	/**
 	 * Extract the schedule identifier from the trigger
-	 * 
+	 *
 	 * @param key
 	 *            the {@link TriggerKey}
 	 * @return the subscription identifier.
@@ -74,7 +74,7 @@ public class VmJob extends QuartzJobBean {
 
 	/**
 	 * Extract the subscription identifier from the trigger
-	 * 
+	 *
 	 * @param key
 	 *            the {@link TriggerKey}
 	 * @return the subscription identifier.

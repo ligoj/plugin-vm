@@ -1,10 +1,11 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.vm;
+package org.ligoj.app.plugin.vm.execution;
 
 import java.util.List;
 
+import org.ligoj.app.plugin.vm.VmNetwork;
 import org.ligoj.app.plugin.vm.model.VmStatus;
 import org.ligoj.bootstrap.core.DescribedBean;
 

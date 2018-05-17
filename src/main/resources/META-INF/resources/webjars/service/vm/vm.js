@@ -151,22 +151,22 @@ define(function () {
 					autoClose: true,
 					buttons: [{
 						className: 'vm-snapshot-create-no-stop',
-						text: current.$messages['service:vm:snapshot-create-no-stop'] + '<i class="fas fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-no-stop-help'] +'"></i>',
+						text: current.$messages['service:vm:snapshot-create-no-stop'] + '<i class="fas fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-no-stop-help'] + '"></i>',
 						action: current.createSnapshot
 					}, {
 						className: 'vm-snapshot-create-stop',
-						text: current.$messages['service:vm:snapshot-create-stop'] + '<i class="fas fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-stop-help'] +'"></i>',
+						text: current.$messages['service:vm:snapshot-create-stop'] + '<i class="fas fa-info-circle text-info pull-right" data-toggle="tooltip" title="' + current.$messages['service:vm:snapshot-create-stop-help'] + '"></i>',
 						action: current.createSnapshot
 					}]
 				}],
 				initComplete: function (_i, snapshots) {
-					var subscription = current.model.id;
+					var subscription = current.model;
 					if (current.hasPendingSnapshot(snapshots)) {
 						// At least one snapshot is pending: track it
 						current.disableSnapshot();
 						setTimeout(function () {
 							// Poll the unfinished snapshot
-							current.pollStart('snapshot-' + subscription, subscription, current.synchronizeSnapshot);
+							current.pollStart('snapshot-' + subscription.id, subscription, current.synchronizeSnapshot);
 						}, 10);
 					} else {
 						current.enableSnapshot();
@@ -191,7 +191,7 @@ define(function () {
 		/**
 		 * Return true when the given snapshot is not in a stable operation.
 		 */
-		isPending: function(snapshot) {
+		isPending: function (snapshot) {
 			return snapshot.pending || snapshot.operation === 'delete';
 		},
 
@@ -200,16 +200,16 @@ define(function () {
 		 */
 		createSnapshot: function (e) {
 			current.disableSnapshot();
-			var subscription = current.model.id;
+			var subscription = current.model;
 			var stop = $(e.target).closest('li').is('.vm-snapshot-create-stop');
 			$.ajax({
 				type: 'POST',
-				url: REST_PATH + 'service/vm/' + subscription + '/snapshot?stop=' + stop,
+				url: REST_PATH + 'service/vm/' + subscription.id + '/snapshot?stop=' + stop,
 				dataType: 'json',
 				contentType: 'application/json',
 				success: function (data) {
 					notifyManager.notify(Handlebars.compile(current.$messages.created)(data.id));
-					current.pollStart('snapshot-' + subscription, subscription, current.synchronizeSnapshot);
+					current.pollStart('snapshot-' + subscription.id, subscription, current.synchronizeSnapshot);
 				},
 				error: function () {
 					current.enableSnapshot();
@@ -268,13 +268,13 @@ define(function () {
 				}]
 			});
 		},
-		
+
 		/**
 		 * Return a new DataTables buttons collection configuration.
 		 * @param {object} model The model to render.
 		 * @return DataTables buttons collection configuration.
 		 */
-		generateReportButtons: function(model) {
+		generateReportButtons: function (model) {
 			var buttons = [{
 				// Add history download button
 				'extend': 'dropdown-link',
@@ -284,12 +284,12 @@ define(function () {
 					'data-toggle': 'tooltip'
 				},
 				'link-attr': {
-					'href': REST_PATH + 'service/vm/' + model.subscription + '/executions-' + model.subscription + '.csv',
+					'href': REST_PATH + 'service/vm/' + model.subscription + '/execution/executions-' + model.subscription + '.csv',
 					'download': 'download'
 				}
 			}];
 			buttons.push(current.newReportScheduleButton(model.node));
-					
+
 			if (model.node.refined) {
 				// Add the tool level
 				buttons.push(current.newReportScheduleButton(model.node.refined));
@@ -428,8 +428,8 @@ define(function () {
 				current.deleteSnapshot(snapshot);
 			});
 		},
-		
-		redrawSnapshot: function(id, callback) {
+
+		redrawSnapshot: function (id, callback) {
 			var found = false;
 			_('vm-snapshots').DataTable().rows(function (index, data) {
 				if (data.id === id) {
@@ -508,8 +508,8 @@ define(function () {
 		renderServiceServiceVmOperationButton: function (icon, operation) {
 			return '<a class="feature service-vm-operation service-vm-operation-' + operation.toLowerCase() +
 				'" data-operation="' + operation + '" data-toggle="tooltip" title="' + current.$messages['service:vm:' +
-					operation.toLowerCase() + '-help'] + '"><i class="fa-fw menu-icon ' + icon + '"></i> ' + current.$messages['service:vm:' +
-					operation.toLowerCase()] + '</a>';
+				operation.toLowerCase() + '-help'] + '"><i class="fa-fw menu-icon ' + icon + '"></i> ' + current.$messages['service:vm:' +
+				operation.toLowerCase()] + '</a>';
 		},
 
 		/**
@@ -552,15 +552,15 @@ define(function () {
 		 */
 		deleteSnapshot: function (snapshot) {
 			current.disableSnapshot();
-			var subscription = current.model.id;
+			var subscription = current.model;
 			$.ajax({
 				type: 'DELETE',
-				url: REST_PATH + 'service/vm/' + subscription + '/snapshot/' + snapshot.id,
+				url: REST_PATH + 'service/vm/' + subscription.id + '/snapshot/' + snapshot.id,
 				dataType: 'json',
 				contentType: 'application/json',
 				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(snapshot.id));
-					current.pollStart('snapshot-' + subscription, subscription, current.synchronizeSnapshot);
+					current.pollStart('snapshot-' + subscription.id, subscription, current.synchronizeSnapshot);
 				},
 				error: function () {
 					current.enableSnapshot();
@@ -616,6 +616,7 @@ define(function () {
 			$.ajax({
 				dataType: 'json',
 				url: REST_PATH + 'subscription/' + current.model.subscription + '/configuration',
+				contentType: 'application/json',
 				type: 'GET',
 				success: function (data) {
 					current.model = data;
@@ -637,11 +638,12 @@ define(function () {
 				$button.attr('disabled', 'disabled').find('.fa').addClass('faa-flash animated');
 				$.ajax({
 					dataType: 'json',
-					url: REST_PATH + 'service/vm/' + id + '/' + operation,
+					url: REST_PATH + 'service/vm/' + id + '/execution/' + operation,
 					contentType: 'application/json',
 					type: 'POST',
 					success: function () {
 						notifyManager.notify(Handlebars.compile(current.$messages['vm-operation-success'])([id, current.$messages['service:vm:' + operation.toLowerCase()]]));
+						current.pollStart('execution-' + id, subscription, current.synchronizeExecution);
 					},
 					complete: function () {
 						$button.removeAttr('disabled').find('.fa').removeClass('faa-flash animated');
@@ -659,7 +661,7 @@ define(function () {
 				$popup.find('.btn-primary').html('<i class="' + current.vmOperations[operation.toUpperCase()] + '"></i> ' + operationLabel);
 				$popup.off('shown.bs.modal').on('shown.bs.modal', function (event) {
 					$popup.find('.btn-primary').trigger('focus');
-				}).off('submit.vm-execute').on('submit.vm-execute', function(e) {
+				}).off('submit.vm-execute').on('submit.vm-execute', function (e) {
 					e.preventDefault();
 					current.serviceVmOperation(true, $button, subscription, operation);
 					$(this).modal('hide');
@@ -687,49 +689,71 @@ define(function () {
 		/**
 		 * Timer for the polling.
 		 */
-		pollStart: function (key, id, synchronizeFunction) {
+		pollStart: function (key, subscription, synchronizeFunction) {
 			current.polling[key] = setInterval(function () {
-				synchronizeFunction(key, id);
+				synchronizeFunction(key, subscription);
 			}, 5000);
+		},
+
+		/**
+		 * Get the new execution status.
+		 */
+		pollGet: function (key, subscription, url, updater, poller) {
+			current.pollStop(key);
+			current.polling[key] = '-';
+			$.ajax({
+				dataType: 'json',
+				url: REST_PATH + 'service/vm/' + subscription.id + '/' + url,
+				type: 'GET',
+				success: function (status) {
+					updater(subscription, status);
+					if (status.finishedRemote) {
+						return;
+					}
+					// Continue polling for this snapshot
+					current.pollStart(key, subscription, poller);
+				}
+			});
 		},
 
 		/**
 		 * Get the new snapshot status.
 		 */
 		synchronizeSnapshot: function (key, subscription) {
-			current.pollStop(key);
-			current.polling[key] = '-';
-			$.ajax({
-				dataType: 'json',
-				url: REST_PATH + 'service/vm/' + subscription + '/snapshot/task',
-				type: 'GET',
-				success: function (status) {
-					current.updateSnapshotStatus(status);
-					if (status.finishedRemote) {
-						return;
-					}
-					// Continue polling for this snapshot
-					current.pollStart(key, subscription, current.synchronizeSnapshot);
-				}
-			});
+			current.pollGet(key, subscription, 'snapshot/task', current.updateSnapshotStatus, current.synchronizeSnapshot);
+		},
+
+		/**
+		 * Get the new execution status.
+		 */
+		synchronizeExecution: function (key, subscription) {
+			current.pollGet(key, subscription, 'execution', current.updateExecutionStatus, current.synchronizeExecution);
+		},
+
+		/**
+		 * Update the execution status.
+		 */
+		updateExecutionStatus: function (subscription, status) {
+			_('subscription-details-' + subscription.id).remove();
+			current.$super('refreshSubscription')(subscription);
 		},
 
 		/**
 		 * Update the snapshot status.
 		 */
-		updateSnapshotStatus: function (status) {
+		updateSnapshotStatus: function (subscription, status) {
 			if (status.finishedRemote) {
 				// Stop the polling, update the buttons
 				_('vm-snapshots').DataTable().ajax.reload();
 				current.updateSnapshotFinalStatus(status);
 			} else {
-				if (!current.redrawSnapshot(status.snapshotInternalId, function(snapshot) {
-						snapshot.operation = status.operation;
-						snapshot.statusText = status.statusText;
-					})) {
+				if (!current.redrawSnapshot(status.snapshotInternalId, function (snapshot) {
+					snapshot.operation = status.operation;
+					snapshot.statusText = status.statusText;
+				})) {
 					_('vm-snapshots').DataTable().ajax.reload();
 				}
-			
+
 				// Update the tooltip for the progress
 				var statusText = 'Phase: ' + status.phase + '<br/>Started: ' + formatManager.formatDateTime(status.start) + (status.snapshotInternalId ? '<br/>Internal reference:' + status.snapshotInternalId : '');
 				current.$super('$view').find('.vm-snapshot-create').attr('title', statusText);

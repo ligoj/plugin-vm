@@ -24,8 +24,9 @@ import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.vm.VmResource;
-import org.ligoj.app.plugin.vm.VmServicePlugin;
 import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
+import org.ligoj.app.plugin.vm.execution.VmExecutionResource;
+import org.ligoj.app.plugin.vm.execution.VmExecutionServicePlugin;
 import org.ligoj.app.plugin.vm.model.VmOperation;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.app.resource.ServicePluginLocator;
@@ -76,7 +77,7 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 
 	protected int subscription;
 
-	private VmServicePlugin mockVmTool;
+	private VmExecutionServicePlugin mockVmTool;
 
 	private ServicePluginLocator mockServicePluginLocator;
 
@@ -89,7 +90,7 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 		this.subscription = getSubscription("gStack");
 
 		mockServicePluginLocator = Mockito.mock(ServicePluginLocator.class);
-		mockVmTool = Mockito.mock(VmServicePlugin.class);
+		mockVmTool = Mockito.mock(VmExecutionServicePlugin.class);
 		Mockito.when(mockServicePluginLocator.getResource(ArgumentMatchers.anyString())).then(invocation -> {
 			final String resource = (String) invocation.getArguments()[0];
 			if (resource.equals("service:vm:test:test")) {
@@ -132,11 +133,11 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	public void createAndUpdateSchedule() throws Exception {
 		final ApplicationContext mockContext = Mockito.mock(ApplicationContext.class);
 		final VmScheduleRepository repository = Mockito.mock(VmScheduleRepository.class);
-		final VmResource mockResource = Mockito.mock(VmResource.class);
+		final VmExecutionResource mockResource = Mockito.mock(VmExecutionResource.class);
 		final Subscription entity = this.subscriptionRepository.findOneExpected(subscription);
 		Mockito.when(mockContext.getBean(VmScheduleRepository.class)).thenReturn(repository);
 		Mockito.when(mockContext.getBean(SecurityHelper.class)).thenReturn(Mockito.mock(SecurityHelper.class));
-		Mockito.when(mockContext.getBean(VmResource.class)).thenReturn(mockResource);
+		Mockito.when(mockContext.getBean(VmExecutionResource.class)).thenReturn(mockResource);
 
 		final StdScheduler scheduler = (StdScheduler) vmSchedulerFactoryBean.getScheduler();
 		final QuartzScheduler qscheduler = (QuartzScheduler) FieldUtils.getField(StdScheduler.class, "sched", true)
@@ -226,10 +227,10 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 
 		final ApplicationContext mockContext = Mockito.mock(ApplicationContext.class);
 		final VmScheduleRepository repository = Mockito.mock(VmScheduleRepository.class);
-		final VmResource mockResource = Mockito.mock(VmResource.class);
+		final VmExecutionResource mockResource = Mockito.mock(VmExecutionResource.class);
 		Mockito.when(mockContext.getBean(VmScheduleRepository.class)).thenReturn(repository);
 		Mockito.when(mockContext.getBean(SecurityHelper.class)).thenReturn(Mockito.mock(SecurityHelper.class));
-		Mockito.when(mockContext.getBean(VmResource.class)).thenReturn(mockResource);
+		Mockito.when(mockContext.getBean(VmExecutionResource.class)).thenReturn(mockResource);
 
 		final StdScheduler scheduler = (StdScheduler) vmSchedulerFactoryBean.getScheduler();
 		final QuartzScheduler qscheduler = (QuartzScheduler) FieldUtils.getField(StdScheduler.class, "sched", true)
