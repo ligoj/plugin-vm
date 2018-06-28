@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import org.ligoj.app.plugin.vm.model.VmExecution;
 import org.ligoj.app.plugin.vm.model.VmExecutionStatus;
 import org.ligoj.app.plugin.vm.model.VmOperation;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
+import org.ligoj.app.plugin.vm.model.VmStatus;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.LongTaskRunnerSubscription;
@@ -62,6 +64,8 @@ import lombok.extern.slf4j.Slf4j;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecutionStatus, VmExecutionStatusRepository> {
+
+	private static final String COMMON_CSV_HEADER = "subscription;project;projectKey;projectName;node";
 
 	@Autowired
 	protected VmExecutionResource self = this;
@@ -252,8 +256,8 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	private void writeHistory(final OutputStream output, Collection<VmExecution> executions) throws IOException {
 		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
 		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
-		writer.write(
-				"subscription;project;projectKey;projectName;node;dateHMS;timestamp;operation;vm;trigger;succeed;statusText;errorText");
+		writer.write(COMMON_CSV_HEADER
+				+ ";dateHMS;timestamp;previousState;operation;vm;trigger;succeed;statusText;errorText");
 		for (final VmExecution execution : executions) {
 			writeCommon(writer, execution.getSubscription());
 			writeExecutionStatus(writer, execution, df);
@@ -271,8 +275,8 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
 		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
 		final Date now = DateUtils.newCalendar().getTime();
-		writer.write(
-				"subscription;project;projectKey;projectName;node;cron;operation;lastDateHMS;lastTimestamp;lastOperation;vm;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp");
+		writer.write(COMMON_CSV_HEADER
+				+ ";cron;operation;lastDateHMS;lastTimestamp;previousState;lastOperation;vm;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp");
 		for (final VmSchedule schedule : schedules) {
 			// The last execution of the related schedule
 			final VmExecution execution = lastExecutions.get(schedule.getSubscription().getId());
@@ -282,7 +286,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 			writer.write(';');
 			writer.write(schedule.getOperation().name());
 			if (execution == null) {
-				writer.write(";;;;;;;;");
+				writer.write(";;;;;;;;;");
 			} else {
 				// Last execution
 				writeExecutionStatus(writer, execution, df);
@@ -307,7 +311,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	}
 
 	/**
-	 * Write <code>dateHms;timestamp;operation;vm;trigger;succeed;statusText;errorText</code> execution values.
+	 * Write <code>dateHms;timestamp;previousState;operation;vm;trigger;succeed;statusText;errorText</code> execution values.
 	 *
 	 * @param writer
 	 *            Target output.
@@ -322,6 +326,8 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 		writer.write(df.format(execution.getDate()));
 		writer.write(';');
 		writer.write(String.valueOf(execution.getDate().getTime()));
+		writer.write(';');
+		writer.write(Optional.ofNullable(execution.getPreviousState()).map(VmStatus::name).orElse(""));
 		writer.write(';');
 		writer.write(execution.getOperation().name());
 		writer.write(';');

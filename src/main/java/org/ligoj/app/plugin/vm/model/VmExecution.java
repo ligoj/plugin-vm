@@ -6,6 +6,8 @@ package org.ligoj.app.plugin.vm.model;
 import java.util.Date;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -73,5 +75,11 @@ public class VmExecution extends AbstractPersistable<Integer> {
 	 * The optional status text.
 	 */
 	private String statusText;
+
+	/**
+	 * The previous state. May be <code>null</code> when unknown.
+	 */
+	@Enumerated(EnumType.STRING)
+	private VmStatus previousState;
 
 }
