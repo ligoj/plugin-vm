@@ -319,7 +319,7 @@ define(function () {
 					'href': REST_PATH + 'service/vm/' + node.id + '/schedules-' + node.id.replace(/:/g, '-') + '.csv',
 					'download': 'download'
 				}
-			}
+			};
 		},
 
 		getNextExecution: function (cron) {
