@@ -93,9 +93,7 @@ define(function () {
 				columns: [{
 					data: 'date',
 					className: 'responsive-datetime',
-					render: function (date) {
-						return moment(date).format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss');
-					}
+					render: date => moment(date).format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss')
 				}, {
 					data: 'id'
 				}, {
@@ -211,9 +209,7 @@ define(function () {
 					notifyManager.notify(Handlebars.compile(current.$messages.created)(data.id));
 					current.pollStart('snapshot-' + subscription.id, subscription, current.synchronizeSnapshot);
 				},
-				error: function () {
-					current.enableSnapshot();
-				}
+				error: () => current.enableSnapshot()
 			});
 		},
 
@@ -235,15 +231,11 @@ define(function () {
 				}, {
 					data: null,
 					className: 'vm-schedules-description hidden-sm hidden-xs',
-					render: function (_i, _j, data) {
-						return prettyCron.toString(data.cron, true);
-					}
+					render: (_i, _j, data) => prettyCron.toString(data.cron, true)
 				}, {
 					data: 'next',
 					className: 'vm-schedules-next responsive-datetime',
-					render: function (_i, _j, data) {
-						return moment(later.schedule(later.parse.cron(data.cron, true)).next(1)).format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss');
-					}
+					render: (_i, _j, data) => moment(later.schedule(later.parse.cron(data.cron, true)).next(1)).format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss')
 				}, {
 					data: null,
 					orderable: false,
@@ -353,9 +345,7 @@ define(function () {
 			_('operation').select2({
 				formatSelection: current.formatOs,
 				formatResult: current.formatOs,
-				escapeMarkup: function (m) {
-					return m;
-				},
+				escapeMarkup: m => m,
 				data: operations
 			});
 
@@ -405,7 +395,7 @@ define(function () {
 						lang: 'default'
 					});
 				});
-			}).on('shown.bs.modal', function (event) {
+			}).on('shown.bs.modal', function () {
 				// Focus to the most wanted component depending on the state
 				if (current.currentId) {
 					_('cron').trigger('focus');
@@ -598,7 +588,7 @@ define(function () {
 				url: REST_PATH + 'service/vm/' + subscription + '/snapshot/' + snapshot.id,
 				dataType: 'json',
 				contentType: 'application/json',
-				success: function (data) {
+				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages['service:vm:restoring'])([snapshot.name, snapshot.id]));
 					current.reload();
 					_('vm-snapshot-popup').modal('hide');
@@ -659,7 +649,7 @@ define(function () {
 				_('vm-execute-vm-id').val(subscription.data.vm.id);
 				_('vm-execute-operation').val(operationLabel).next('.help-block').text(current.$messages['service:vm:' + operation.toLowerCase() + '-help']);
 				$popup.find('.btn-primary').html('<i class="' + current.vmOperations[operation.toUpperCase()] + '"></i> ' + operationLabel);
-				$popup.off('shown.bs.modal').on('shown.bs.modal', function (event) {
+				$popup.off('shown.bs.modal').on('shown.bs.modal', function () {
 					$popup.find('.btn-primary').trigger('focus');
 				}).off('submit.vm-execute').on('submit.vm-execute', function (e) {
 					e.preventDefault();
@@ -733,7 +723,7 @@ define(function () {
 		/**
 		 * Update the execution status.
 		 */
-		updateExecutionStatus: function (subscription, status) {
+		updateExecutionStatus: function (subscription) {
 			_('subscription-details-' + subscription.id).remove();
 			current.$super('refreshSubscription')(subscription);
 		},

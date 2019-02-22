@@ -87,7 +87,7 @@ public class VmScheduleResource implements InitializingBean {
 
 	/**
 	 * Remove all schedules from memory, Quartz and database.
-	 * 
+	 *
 	 * @param subscription
 	 *            The parent subscription holding the schedules.
 	 * @throws SchedulerException
@@ -102,25 +102,34 @@ public class VmScheduleResource implements InitializingBean {
 	}
 
 	/**
-	 * Remove all schedules of this subscription from the current scheduler, then from the data base.
-	 * 
+	 * Delete the schedule entity. Related subscription's visibility is checked.
+	 *
 	 * @param subscription
-	 *            The parent subscription holding the schedules.
+	 *            The target subscription. The subscription cannot be changed for a schedule.
+	 * @param schedule
+	 *            The schedule identifier to delete.
 	 * @throws SchedulerException
-	 *             When quartz cannot remove the schedules.
+	 *             When the schedule cannot be done by Quartz.
 	 */
-	protected void unscheduleAll(final int subscription) throws SchedulerException {
-		// Remove current schedules from the memory
-		unscheduleAll(triggerKey -> subscription == VmJob.getSubscription(triggerKey));
+	@DELETE
+	@Path("{id:\\d+}")
+	@Transactional
+	public void delete(@PathParam("subscription") final int subscription, @PathParam("id") final int schedule)
+			throws SchedulerException {
+		// Check the subscription is visible
+		subscriptionResource.checkVisible(subscription);
 
-		// Remove all schedules associated to this subscription
-		repository.deleteAllBy("subscription.id", subscription);
+		// Check the schedule is related to the subscription
+		checkOwnership(subscription, schedule);
+
+		// Clear the specific schedule
+		unschedule(schedule);
 	}
 
 	/**
 	 * Remove a schedule of this subscription for a specific operation from the current scheduler, then from the data
 	 * base.
-	 * 
+	 *
 	 * @param schedule
 	 *            The schedule to remove from quartz.
 	 * @throws SchedulerException
@@ -136,6 +145,22 @@ public class VmScheduleResource implements InitializingBean {
 	private void unscheduleQuartz(final int schedule) throws SchedulerException {
 		// Remove current schedules from the memory
 		unscheduleAll(triggerKey -> schedule == VmJob.getSchedule(triggerKey));
+	}
+
+	/**
+	 * Remove all schedules of this subscription from the current scheduler, then from the data base.
+	 *
+	 * @param subscription
+	 *            The parent subscription holding the schedules.
+	 * @throws SchedulerException
+	 *             When quartz cannot remove the schedules.
+	 */
+	protected void unscheduleAll(final int subscription) throws SchedulerException {
+		// Remove current schedules from the memory
+		unscheduleAll(triggerKey -> subscription == VmJob.getSubscription(triggerKey));
+
+		// Remove all schedules associated to this subscription
+		repository.deleteAllBy("subscription.id", subscription);
 	}
 
 	/**
@@ -186,7 +211,7 @@ public class VmScheduleResource implements InitializingBean {
 
 	/**
 	 * Return all schedules related to given subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription identifier.
 	 * @return All schedules related to given subscription.
@@ -211,7 +236,7 @@ public class VmScheduleResource implements InitializingBean {
 
 	/**
 	 * Create a new schedule.
-	 * 
+	 *
 	 * @param subscription
 	 *            The target subscription. The subscription cannot be changed for a schedule.
 	 * @param schedule
@@ -231,7 +256,7 @@ public class VmScheduleResource implements InitializingBean {
 
 	/**
 	 * Update an existing schedule.
-	 * 
+	 *
 	 * @param subscription
 	 *            The target subscription. The subscription cannot be changed for a schedule.
 	 * @param schedule
@@ -285,33 +310,8 @@ public class VmScheduleResource implements InitializingBean {
 	}
 
 	/**
-	 * Delete the schedule entity. Related subscription's visibility is checked.
-	 * 
-	 * @param subscription
-	 *            The target subscription. The subscription cannot be changed for a schedule.
-	 * @param schedule
-	 *            The schedule identifier to delete.
-	 * @throws SchedulerException
-	 *             When the schedule cannot be done by Quartz.
-	 */
-	@DELETE
-	@Path("{id:\\d+}")
-	@Transactional
-	public void delete(@PathParam("subscription") final int subscription, @PathParam("id") final int schedule)
-			throws SchedulerException {
-		// Check the subscription is visible
-		subscriptionResource.checkVisible(subscription);
-
-		// Check the schedule is related to the subscription
-		checkOwnership(subscription, schedule);
-
-		// Clear the specific schedule
-		unschedule(schedule);
-	}
-
-	/**
 	 * Check the given schedule exists and is related to given subscription.
-	 * 
+	 *
 	 * @param subscription
 	 *            The subscription holder.
 	 * @param schedule
