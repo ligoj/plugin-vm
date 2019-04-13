@@ -184,9 +184,9 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("snap", volumeSnapshot.getId());
 		Assertions.assertEquals(10, volumeSnapshot.getSize());
 		Assertions.assertEquals("/dev", volumeSnapshot.getName());
-		Assertions.assertEquals(SnapshotStatus.valueOf(SnapshotStatus.values()[0].name()), SnapshotStatus.AVAILABLE);
-		Assertions.assertEquals(SnapshotOperation.valueOf(SnapshotOperation.values()[0].name()),
-				SnapshotOperation.CREATE);
+		Assertions.assertEquals(SnapshotStatus.AVAILABLE, SnapshotStatus.valueOf(SnapshotStatus.values()[0].name()));
+		Assertions.assertEquals(SnapshotOperation.CREATE,
+				SnapshotOperation.valueOf(SnapshotOperation.values()[0].name()));
 	}
 
 	@Test
