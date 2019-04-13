@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.ligoj.app.model.AbstractLongTaskSubscription;
 import org.ligoj.app.plugin.vm.execution.Vm;
@@ -42,11 +43,14 @@ public class VmExecutionStatus extends AbstractLongTaskSubscription {
 	/**
 	 * Optional attached VM status.
 	 */
-	private transient Vm vm;
+	@JsonIgnore
+	@Transient
+	private Vm vm;
 
 	/**
 	 * Optional attached execution order.
 	 */
 	@JsonIgnore
-	private transient VmExecution execution;
+	@Transient
+	private VmExecution execution;
 }
