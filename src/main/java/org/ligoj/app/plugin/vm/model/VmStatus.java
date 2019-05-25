@@ -8,5 +8,18 @@ package org.ligoj.app.plugin.vm.model;
  */
 public enum VmStatus {
 
-	SUSPENDED, POWERED_ON, POWERED_OFF
+	/**
+	 * Suspended, or hibernated state.
+	 */
+	SUSPENDED,
+
+	/**
+	 * Powered ON
+	 */
+	POWERED_ON,
+
+	/**
+	 * Powered OFF
+	 */
+	POWERED_OFF
 }

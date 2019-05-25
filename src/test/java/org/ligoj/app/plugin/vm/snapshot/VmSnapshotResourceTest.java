@@ -42,7 +42,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class VmSnapshotResourceTest extends AbstractServerTest {
+class VmSnapshotResourceTest extends AbstractServerTest {
 
 	private VmSnapshotResource resource;
 
@@ -59,7 +59,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	private SubscriptionRepository subscriptionRepository;
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
 				StandardCharsets.UTF_8.name());
@@ -79,7 +79,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void completeStatus() {
+	void completeStatus() {
 		new Snapshotting() {
 
 			@Override
@@ -101,7 +101,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void createNotSupported() {
+	void createNotSupported() {
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
 		Assertions.assertEquals("snapshot-no-supported", Assertions.assertThrows(BusinessException.class, () -> {
 			resource.create(subscription, true);
@@ -109,7 +109,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void create() throws Exception {
+	void create() throws Exception {
 		status = resource.create(subscription, true);
 		Thread.sleep(200);
 		Mockito.verify(service).snapshot(ArgumentMatchers.any(VmSnapshotStatus.class));
@@ -129,7 +129,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void delete() throws Exception {
+	void delete() throws Exception {
 		status = resource.delete(subscription, "snapshot-id");
 		Thread.sleep(200);
 		Mockito.verify(service).delete(ArgumentMatchers.any(VmSnapshotStatus.class));
@@ -149,7 +149,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void findAll() throws Exception {
+	void findAll() throws Exception {
 		Snapshot snapshot = new Snapshot();
 		snapshot.setAuthor(new SimpleUser());
 		snapshot.setAvailable(true);
@@ -190,7 +190,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getTask() {
+	void getTask() {
 		// Add a running task
 		final VmSnapshotStatus oldTask = new VmSnapshotStatus();
 		oldTask.setAuthor("junit");
@@ -207,7 +207,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getTaskNull() {
+	void getTaskNull() {
 		mockProxy();
 		final VmSnapshotStatus task = resource.getTask(subscription);
 		Mockito.verify(service, Mockito.never()).completeStatus(ArgumentMatchers.any(VmSnapshotStatus.class));
@@ -215,14 +215,14 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void isFinished() {
+	void isFinished() {
 		final VmSnapshotStatus task = new VmSnapshotStatus();
 		task.setFinishedRemote(true);
 		Assertions.assertTrue(resource.isFinished(task));
 	}
 
 	@Test
-	public void isFinishedFailed() {
+	void isFinishedFailed() {
 		final VmSnapshotStatus task = new VmSnapshotStatus();
 		task.setFinishedRemote(true);
 		task.setFailed(true);
@@ -230,7 +230,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void isFinishedNotFinishedRemote() {
+	void isFinishedNotFinishedRemote() {
 		final VmSnapshotStatus task = new VmSnapshotStatus();
 		task.setLocked(subscriptionRepository.findOneExpected(subscription));
 		Assertions.assertFalse(resource.isFinished(task));
@@ -250,7 +250,7 @@ public class VmSnapshotResourceTest extends AbstractServerTest {
 	/**
 	 * Return the subscription identifier of the given project. Assumes there is only one subscription for a service.
 	 */
-	protected int getSubscription(final String project) {
+	private int getSubscription(final String project) {
 		return getSubscription(project, VmResource.SERVICE_KEY);
 	}
 }

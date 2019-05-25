@@ -12,25 +12,25 @@ import org.quartz.TriggerKey;
 /**
  * Test class of {@link VmJob}
  */
-public class VmJobTest {
+class VmJobTest {
 
 	@Test
-	public void getSubscription() {
+	void getSubscription() {
 		Assertions.assertEquals(999, VmJob.getSubscription(new TriggerKey("10-999")));
 	}
 
 	@Test
-	public void getSchedule() {
+	void getSchedule() {
 		Assertions.assertEquals(10, VmJob.getSchedule(new TriggerKey("10-999")));
 	}
 
 	@Test
-	public void parse() {
+	void parse() {
 		Assertions.assertArrayEquals(new Object[2], VmJob.parse("any-OFF"));
 	}
 
 	@Test
-	public void format() {
+	void format() {
 		final VmSchedule vmSchedule = new VmSchedule();
 		vmSchedule.setId(6789);
 		final Subscription subscription = new Subscription();

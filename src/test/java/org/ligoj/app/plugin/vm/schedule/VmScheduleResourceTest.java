@@ -58,7 +58,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class VmScheduleResourceTest extends AbstractServerTest {
+class VmScheduleResourceTest extends AbstractServerTest {
 
 	@Autowired
 	private VmScheduleResource resource;
@@ -82,7 +82,7 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	private ServicePluginLocator mockServicePluginLocator;
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
 				StandardCharsets.UTF_8.name());
@@ -114,7 +114,7 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	}
 
 	@AfterEach
-	public void cleanTrigger() throws SchedulerException {
+	void cleanTrigger() throws SchedulerException {
 
 		// Remove all previous VM trigger
 		final Scheduler scheduler = vmSchedulerFactoryBean.getScheduler();
@@ -125,12 +125,12 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	/**
 	 * Return the subscription identifier of the given project. Assumes there is only one subscription for a service.
 	 */
-	protected int getSubscription(final String project) {
+	private int getSubscription(final String project) {
 		return getSubscription(project, VmResource.SERVICE_KEY);
 	}
 
 	@Test
-	public void createAndUpdateSchedule() throws Exception {
+	void createAndUpdateSchedule() throws Exception {
 		final ApplicationContext mockContext = Mockito.mock(ApplicationContext.class);
 		final VmScheduleRepository repository = Mockito.mock(VmScheduleRepository.class);
 		final VmExecutionResource mockResource = Mockito.mock(VmExecutionResource.class);
@@ -198,14 +198,14 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void createInvalidCron() {
+	void createInvalidCron() {
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
 			resource.create(subscription, newSchedule("ERROR_CRON", VmOperation.OFF));
 		}), "cron", "vm-cron");
 	}
 
 	@Test
-	public void createInvalidCronEverySecond() {
+	void createInvalidCronEverySecond() {
 		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
 			resource.create(subscription, newSchedule("* * * ? * *", VmOperation.OFF));
 		}), "cron", "vm-cron-second");
@@ -219,7 +219,7 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void unscheduleAll() throws Exception {
+	void unscheduleAll() throws Exception {
 		Assertions.assertEquals(1, repository.findAll().size());
 		repository.deleteAll();
 		Assertions.assertEquals(0, repository.findAll().size());
@@ -289,7 +289,7 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void delete() throws Exception {
+	void delete() throws Exception {
 		Assertions.assertEquals(1, repository.findAll().size());
 		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
 
@@ -311,7 +311,7 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void deleteInvalidSubscription() throws Exception {
+	void deleteInvalidSubscription() throws Exception {
 		Assertions.assertEquals(1, repository.findAll().size());
 		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
 
@@ -328,7 +328,7 @@ public class VmScheduleResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void afterPropertiesSet() throws Exception {
+	void afterPropertiesSet() throws Exception {
 		resource.unscheduleAll(subscription);
 		Assertions.assertEquals(0, repository.findAll().size());
 

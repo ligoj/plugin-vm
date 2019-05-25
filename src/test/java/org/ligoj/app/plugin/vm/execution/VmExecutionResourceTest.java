@@ -64,7 +64,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class VmExecutionResourceTest extends AbstractServerTest {
+class VmExecutionResourceTest extends AbstractServerTest {
 	@Autowired
 	private VmResource vmResource;
 
@@ -96,7 +96,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	private SecurityHelper securityHelper;
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
 				StandardCharsets.UTF_8.name());
@@ -129,7 +129,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	@AfterEach
-	public void cleanTrigger() throws SchedulerException {
+	void cleanTrigger() throws SchedulerException {
 
 		// Remove all previous VM trigger
 		final Scheduler scheduler = vmSchedulerFactoryBean.getScheduler();
@@ -145,7 +145,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void execute() throws Exception {
+	void execute() throws Exception {
 		final VmExecutionResource resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
@@ -167,7 +167,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void executeNotFinishedRemote() throws Exception {
+	void executeNotFinishedRemote() throws Exception {
 		final VmExecutionResource resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
@@ -233,7 +233,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	 * Coverage only
 	 */
 	@Test
-	public void executeDefault() throws Exception {
+	void executeDefault() throws Exception {
 		final VmExecution execution = new VmExecution();
 		final Subscription subscription = new Subscription();
 		subscription.setId(1);
@@ -253,7 +253,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void executeUnavailablePlugin() throws Exception {
+	void executeUnavailablePlugin() throws Exception {
 		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
 		final Node node = new Node();
 		node.setId("_deleted_plugin_");
@@ -275,7 +275,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void executeError() throws Exception {
+	void executeError() throws Exception {
 		final VmExecutionResource resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
@@ -289,12 +289,12 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void enumVmStatus() {
+	void enumVmStatus() {
 		Assertions.assertEquals("SUSPENDED", VmStatus.values()[VmStatus.valueOf("SUSPENDED").ordinal()].name());
 	}
 
 	@Test
-	public void downloadHistoryReport() throws Exception {
+	void downloadHistoryReport() throws Exception {
 		final VmExecutionResource resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
@@ -384,7 +384,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void downloadNodeSchedulesReport() throws Exception {
+	void downloadNodeSchedulesReport() throws Exception {
 		final VmExecutionResource resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
@@ -489,7 +489,7 @@ public class VmExecutionResourceTest extends AbstractServerTest {
 	 * {@link VmExecutionServicePlugin} and without usage.
 	 */
 	@Test
-	public void testVm() {
+	void testVm() {
 		final Vm vm = new Vm();
 		vm.setBusy(true);
 		vm.setCpu(1);

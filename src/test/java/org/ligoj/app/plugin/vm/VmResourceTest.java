@@ -47,7 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class VmResourceTest extends AbstractServerTest {
+class VmResourceTest extends AbstractServerTest {
 
 	@Autowired
 	private VmResource resource;
@@ -70,7 +70,7 @@ public class VmResourceTest extends AbstractServerTest {
 	protected int subscription;
 
 	@BeforeEach
-	public void prepareData() throws IOException {
+	void prepareData() throws IOException {
 		// Only with Spring context
 		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
 				StandardCharsets.UTF_8.name());
@@ -78,7 +78,7 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@AfterEach
-	public void cleanTrigger() throws SchedulerException {
+	void cleanTrigger() throws SchedulerException {
 
 		// Remove all previous VM trigger
 		final Scheduler scheduler = vmSchedulerFactoryBean.getScheduler();
@@ -94,7 +94,7 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void delete() throws SchedulerException {
+	void delete() throws SchedulerException {
 		final Project project = new Project();
 		project.setName("TEST");
 		project.setPkey("test");
@@ -119,7 +119,7 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getConfiguration() throws ParseException {
+	void getConfiguration() throws ParseException {
 		final VmResource resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
@@ -139,7 +139,7 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getConfigurationSupportSnapshot() throws ParseException {
+	void getConfigurationSupportSnapshot() throws ParseException {
 		final VmResource resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
@@ -150,7 +150,7 @@ public class VmResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void getKey() {
+	void getKey() {
 		Assertions.assertEquals("service:vm", resource.getKey());
 	}
 }
