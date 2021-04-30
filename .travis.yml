@@ -13,7 +13,7 @@ cache:
     - $HOME/.sonar/cache
     - $HOME/.cache
     - $HOME/maven
-jdk: openjdk14
+jdk: openjdk15
 dist: xenial
 env: 
   - TARGET=BUILD
