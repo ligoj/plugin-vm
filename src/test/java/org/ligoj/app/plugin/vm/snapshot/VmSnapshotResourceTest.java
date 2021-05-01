@@ -150,7 +150,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 
 	@Test
 	void findAll() throws Exception {
-		Snapshot snapshot = new Snapshot();
+		var snapshot = new Snapshot();
 		snapshot.setAuthor(new SimpleUser());
 		snapshot.setAvailable(true);
 		snapshot.setDate(new Date());
@@ -160,14 +160,14 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 		snapshot.setStopRequested(true);
 		snapshot.setOperation(SnapshotOperation.CREATE);
 
-		final VolumeSnapshot volumeSnapshot = new VolumeSnapshot();
+		final var volumeSnapshot = new VolumeSnapshot();
 		volumeSnapshot.setId("snap");
 		volumeSnapshot.setSize(10);
 		volumeSnapshot.setName("/dev");
 		snapshot.setVolumes(Collections.singletonList(volumeSnapshot));
 		Mockito.doReturn(Collections.singletonList(snapshot)).when(service).findAllSnapshots(subscription, "criteria");
 
-		final List<Snapshot> list = resource.findAll(subscription, "criteria");
+		final var list = resource.findAll(subscription, "criteria");
 		Assertions.assertEquals(1, list.size());
 		snapshot = list.get(0);
 
@@ -192,7 +192,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	@Test
 	void getTask() {
 		// Add a running task
-		final VmSnapshotStatus oldTask = new VmSnapshotStatus();
+		final var oldTask = new VmSnapshotStatus();
 		oldTask.setAuthor("junit");
 		oldTask.setStart(new Date());
 		oldTask.setOperation(SnapshotOperation.CREATE);
@@ -200,7 +200,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 		repository.saveAndFlush(oldTask);
 		mockProxy();
 
-		final VmSnapshotStatus task = resource.getTask(subscription);
+		final var task = resource.getTask(subscription);
 		Mockito.verify(service).completeStatus(ArgumentMatchers.any(VmSnapshotStatus.class));
 		Assertions.assertEquals("junit", task.getAuthor());
 		Assertions.assertEquals(SnapshotOperation.CREATE, task.getOperation());
@@ -209,21 +209,21 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	@Test
 	void getTaskNull() {
 		mockProxy();
-		final VmSnapshotStatus task = resource.getTask(subscription);
+		final var task = resource.getTask(subscription);
 		Mockito.verify(service, Mockito.never()).completeStatus(ArgumentMatchers.any(VmSnapshotStatus.class));
 		Assertions.assertNull(task);
 	}
 
 	@Test
 	void isFinished() {
-		final VmSnapshotStatus task = new VmSnapshotStatus();
+		final var task = new VmSnapshotStatus();
 		task.setFinishedRemote(true);
 		Assertions.assertTrue(resource.isFinished(task));
 	}
 
 	@Test
 	void isFinishedFailed() {
-		final VmSnapshotStatus task = new VmSnapshotStatus();
+		final var task = new VmSnapshotStatus();
 		task.setFinishedRemote(true);
 		task.setFailed(true);
 		Assertions.assertTrue(resource.isFinished(task));
@@ -231,7 +231,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 
 	@Test
 	void isFinishedNotFinishedRemote() {
-		final VmSnapshotStatus task = new VmSnapshotStatus();
+		final var task = new VmSnapshotStatus();
 		task.setLocked(subscriptionRepository.findOneExpected(subscription));
 		Assertions.assertFalse(resource.isFinished(task));
 		Mockito.verify(service).completeStatus(task);

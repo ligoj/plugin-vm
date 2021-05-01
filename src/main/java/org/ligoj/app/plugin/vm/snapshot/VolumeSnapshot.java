@@ -9,8 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A volume snapshot. The <code>name</code> attribute corresponds to the device
- * name.
+ * A volume snapshot. The <code>name</code> attribute corresponds to the device name.
  */
 @Getter
 @Setter

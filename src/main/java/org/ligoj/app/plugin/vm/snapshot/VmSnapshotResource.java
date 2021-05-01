@@ -71,20 +71,18 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 
 	/**
 	 * Create a snapshot.
-	 * 
-	 * @param subscription
-	 *            The related subscription.
-	 * @param stop
-	 *            When <code>true</code> the relate is stopped before the snapshot.
+	 *
+	 * @param subscription The related subscription.
+	 * @param stop         When <code>true</code> the relate is stopped before the snapshot.
 	 * @return The snapshot task information.
 	 */
 	@POST
 	public VmSnapshotStatus create(@PathParam("subscription") final int subscription,
 			@QueryParam("stop") @DefaultValue("false") final boolean stop) {
 		// Check the visibility and get the contract implementation
-		final Snapshotting snap = getSnapshot(subscriptionResource.checkVisible(subscription).getNode());
+		final var snap = getSnapshot(subscriptionResource.checkVisible(subscription).getNode());
 		log.info("New snapshot requested for subscription {}", subscription);
-		final VmSnapshotStatus task = startTask(subscription, t -> {
+		final var task = startTask(subscription, t -> {
 			t.setWorkload(1);
 			t.setDone(0);
 			t.setSnapshotInternalId(null);
@@ -94,7 +92,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 			t.setOperation(SnapshotOperation.CREATE);
 			t.setStop(stop);
 		});
-		final String user = securityHelper.getLogin();
+		final var user = securityHelper.getLogin();
 		// The snapshot execution will done into another thread
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
@@ -108,11 +106,9 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 
 	/**
 	 * Delete a snapshot by its identifier.
-	 * 
-	 * @param subscription
-	 *            The related subscription.
-	 * @param snapshot
-	 *            The internal snapshot identifier.
+	 *
+	 * @param subscription The related subscription.
+	 * @param snapshot     The internal snapshot identifier.
 	 * @return The snapshot task information.
 	 */
 	@DELETE
@@ -120,9 +116,9 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	public VmSnapshotStatus delete(@PathParam("subscription") final int subscription,
 			@PathParam("snapshot") final String snapshot) {
 		// Check the visibility and get the contract implementation
-		final Snapshotting snap = getSnapshot(subscriptionResource.checkVisible(subscription).getNode());
+		final var snap = getSnapshot(subscriptionResource.checkVisible(subscription).getNode());
 		log.info("Snapshot deletion requested for subscription {}, snapshot {}", subscription, snapshot);
-		final VmSnapshotStatus task = startTask(subscription, t -> {
+		final var task = startTask(subscription, t -> {
 			t.setWorkload(1);
 			t.setDone(0);
 			t.setSnapshotInternalId(snapshot);
@@ -132,7 +128,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 			t.setOperation(SnapshotOperation.DELETE);
 			t.setStop(false);
 		});
-		final String user = securityHelper.getLogin();
+		final var user = securityHelper.getLogin();
 		// The snapshot execution will done into another thread
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
@@ -147,14 +143,11 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	/**
 	 * Return all snapshots matching to the given criteria and also associated to the given subscription.
 	 *
-	 * @param subscription
-	 *            The related subscription identifier.
-	 * @param criteria
-	 *            The optional search criteria. Case is insensitive. May be the name or the identifier for this
-	 *            snapshot.
+	 * @param subscription The related subscription identifier.
+	 * @param criteria     The optional search criteria. Case is insensitive. May be the name or the identifier for this
+	 *                     snapshot.
 	 * @return Matching snapshots ordered by descending creation date.
-	 * @throws Exception
-	 *             Any error while finding the snapshots.
+	 * @throws Exception Any error while finding the snapshots.
 	 */
 	@GET
 	public List<Snapshot> findAll(@PathParam("subscription") final int subscription,
@@ -173,7 +166,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	@GET
 	@Path("task")
 	public VmSnapshotStatus getTask(@PathParam("subscription") final int subscription) {
-		final VmSnapshotStatus task = LongTaskRunnerSubscription.super.getTask(subscription);
+		final var task = LongTaskRunnerSubscription.super.getTask(subscription);
 		if (task != null) {
 			getSnapshot(task.getLocked().getNode()).completeStatus(task);
 		}
@@ -186,8 +179,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 		if (task.isFailed()) {
 			task.setFinishedRemote(true);
 		} else if (!task.isFinishedRemote()) {
-			getSnapshot(subscriptionResource.checkVisible(task.getLocked().getId()).getNode())
-					.completeStatus(task);
+			getSnapshot(subscriptionResource.checkVisible(task.getLocked().getId()).getNode()).completeStatus(task);
 		}
 		return task.isFinishedRemote();
 	}

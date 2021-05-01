@@ -11,7 +11,6 @@ import java.io.Writer;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -31,7 +30,6 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.ligoj.app.dao.SubscriptionRepository;
-import org.ligoj.app.model.Project;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.vm.VmResource;
 import org.ligoj.app.plugin.vm.dao.VmExecutionRepository;
@@ -98,10 +96,8 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	 * Execute a {@link VmOperation} to the associated VM and checks its visibility against the current principal user.
 	 * This a synchronous call, but the effective execution is delayed.
 	 *
-	 * @param subscription
-	 *            The {@link Subscription} identifier associated to the VM.
-	 * @param operation
-	 *            the operation to execute.
+	 * @param subscription The {@link Subscription} identifier associated to the VM.
+	 * @param operation    the operation to execute.
 	 * @return The execution task information.
 	 */
 	@POST
@@ -116,24 +112,22 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	 * Execute a {@link VmOperation} to the associated VM. This is a synchronous call, but the effective execution is
 	 * delayed.
 	 *
-	 * @param subscription
-	 *            The {@link Subscription} associated to the VM.
-	 * @param operation
-	 *            the operation to execute.
+	 * @param subscription The {@link Subscription} associated to the VM.
+	 * @param operation    the operation to execute.
 	 * @return The execution task information.
 	 */
 	public VmExecutionStatus execute(final Subscription subscription, final VmOperation operation) {
-		final String node = subscription.getNode().getId();
-		final String trigger = securityHelper.getLogin();
+		final var node = subscription.getNode().getId();
+		final var trigger = securityHelper.getLogin();
 		log.info("Operation {} on subscription {}, node {} is requested by {}", operation, subscription.getId(), node,
 				trigger);
-		final VmExecution execution = new VmExecution();
-		boolean failed = true;
+		final var execution = new VmExecution();
+		var failed = true;
 		execution.setOperation(operation);
 		execution.setSubscription(subscription);
 		execution.setTrigger(trigger);
 		execution.setDate(new Date());
-		final VmExecutionStatus task = self.startTask(subscription.getId(), t -> {
+		final var task = self.startTask(subscription.getId(), t -> {
 			t.setFinishedRemote(false);
 			t.setOperation(operation);
 			// Share the current execution, this relationship is not persisted
@@ -166,7 +160,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	@Override
 	@GET
 	public VmExecutionStatus getTask(@PathParam("subscription") final int subscription) {
-		final VmExecutionStatus task = LongTaskRunnerSubscription.super.getTask(subscription);
+		final var task = LongTaskRunnerSubscription.super.getTask(subscription);
 		if (task != null && completeStatus(task)) {
 			// Save the new state
 			taskRepository.saveAndFlush(task);
@@ -185,9 +179,9 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 		if (!task.isFinishedRemote() && task.isFinished()) {
 			// Complete the status for the uncompleted tasks
 			final int subscription = task.getLocked().getId();
-			final String node = task.getLocked().getNode().getId();
+			final var node = task.getLocked().getNode().getId();
 			try {
-				final Vm vm = getTool(node).getVmDetails(subscriptionResource.getParametersNoCheck(subscription));
+				final var vm = getTool(node).getVmDetails(subscriptionResource.getParametersNoCheck(subscription));
 				task.setVm(vm);
 				task.setFinishedRemote(!vm.isBusy());
 				return true;
@@ -208,10 +202,8 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	/**
 	 * Return the execution report of VM related to the given subscription.
 	 *
-	 * @param subscription
-	 *            The related subscription.
-	 * @param file
-	 *            The requested file name.
+	 * @param subscription The related subscription.
+	 * @param file         The requested file name.
 	 * @return The download stream.
 	 */
 	@GET
@@ -228,10 +220,8 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	/**
 	 * Return all configured schedules report of all VM related to a a visible subscription related to the given node.
 	 *
-	 * @param node
-	 *            The related node.
-	 * @param file
-	 *            The requested file name.
+	 * @param node The related node.
+	 * @param file The requested file name.
 	 * @return The download stream.
 	 */
 	@GET
@@ -240,7 +230,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	public Response downloadNodeSchedulesReport(@PathParam("node") final String node,
 			@PathParam("file") final String file) {
 		// Get all visible schedules linked to this node
-		final List<VmSchedule> schedules = vmScheduleRepository.findAllByNode(node, securityHelper.getLogin());
+		final var schedules = vmScheduleRepository.findAllByNode(node, securityHelper.getLogin());
 
 		// Get all last execution related to given node, Key is the subscription identifier
 		final Map<Integer, VmExecution> lastExecutions = vmExecutionRepository.findAllByNodeLast(node).stream()
@@ -255,7 +245,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	 */
 	private void writeHistory(final OutputStream output, Collection<VmExecution> executions) throws IOException {
 		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
-		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
+		final var df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
 		writer.write(COMMON_CSV_HEADER
 				+ ";dateHMS;timestamp;previousState;operation;vm;trigger;succeed;statusText;errorText");
 		for (final VmExecution execution : executions) {
@@ -273,13 +263,13 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	private void writeSchedules(final OutputStream output, Collection<VmSchedule> schedules,
 			final Map<Integer, VmExecution> lastExecutions) throws IOException {
 		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
-		final FastDateFormat df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
-		final Date now = DateUtils.newCalendar().getTime();
+		final var df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
+		final var now = DateUtils.newCalendar().getTime();
 		writer.write(COMMON_CSV_HEADER
 				+ ";cron;operation;lastDateHMS;lastTimestamp;previousState;lastOperation;vm;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp");
 		for (final VmSchedule schedule : schedules) {
 			// The last execution of the related schedule
-			final VmExecution execution = lastExecutions.get(schedule.getSubscription().getId());
+			final var execution = lastExecutions.get(schedule.getSubscription().getId());
 			writeCommon(writer, schedule.getSubscription());
 			writer.write(';');
 			writer.write(schedule.getCron());
@@ -294,7 +284,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 
 			// Next execution
 			try {
-				final Date next = new CronExpression(schedule.getCron()).getNextValidTimeAfter(now);
+				final var next = new CronExpression(schedule.getCron()).getNextValidTimeAfter(now);
 				writer.write(';');
 				writer.write(df.format(next));
 				writer.write(';');
@@ -311,14 +301,12 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	}
 
 	/**
-	 * Write <code>dateHms;timestamp;previousState;operation;vm;trigger;succeed;statusText;errorText</code> execution values.
+	 * Write <code>dateHms;timestamp;previousState;operation;vm;trigger;succeed;statusText;errorText</code> execution
+	 * values.
 	 *
-	 * @param writer
-	 *            Target output.
-	 * @param execution
-	 *            Execution to write.
-	 * @param df
-	 *            Date format for date to write.
+	 * @param writer    Target output.
+	 * @param execution Execution to write.
+	 * @param df        Date format for date to write.
 	 */
 	private void writeExecutionStatus(final Writer writer, final VmExecution execution, final FastDateFormat df)
 			throws IOException {
@@ -345,13 +333,11 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	/**
 	 * Write <code>subscription;project;projetKey;projectName;node</code>.
 	 *
-	 * @param writer
-	 *            Target output.
-	 * @param subscription
-	 *            Related subscription.
+	 * @param writer       Target output.
+	 * @param subscription Related subscription.
 	 */
 	private void writeCommon(final Writer writer, final Subscription subscription) throws IOException {
-		final Project project = subscription.getProject();
+		final var project = subscription.getProject();
 		writer.write('\n');
 		writer.write(String.valueOf(subscription.getId()));
 		writer.write(';');
@@ -367,10 +353,8 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	/**
 	 * Save as needed the given schedule.
 	 *
-	 * @param execution
-	 *            The execution to persist.
-	 * @param operation
-	 *            The original operation to execute.
+	 * @param execution The execution to persist.
+	 * @param operation The original operation to execute.
 	 */
 	private void saveAndFlush(final VmExecution execution, final VmOperation operation) {
 		// Check this execution has been really been executed

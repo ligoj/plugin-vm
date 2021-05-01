@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -47,7 +46,6 @@ import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,7 +105,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		mockLocator = Mockito.mock(ServicePluginLocator.class);
 		mockVmTool = Mockito.mock(VmExecutionServicePlugin.class);
 		Mockito.when(mockLocator.getResource(ArgumentMatchers.anyString())).then(invocation -> {
-			final String resource = (String) invocation.getArguments()[0];
+			final var resource = (String) invocation.getArguments()[0];
 			if (resource.equals("service:vm:test:test")) {
 				return mockVmTool;
 			}
@@ -115,14 +113,14 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		});
 		Mockito.when(mockLocator.getResourceExpected(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
 				.then(invocation -> {
-					final String resource = (String) invocation.getArguments()[0];
+					final var resource = (String) invocation.getArguments()[0];
 					if (resource.equals("service:vm:test:test")) {
 						return mockVmTool;
 					}
 					return VmExecutionResourceTest.this.locator.getResourceExpected(resource,
 							(Class<?>) invocation.getArguments()[1]);
 				});
-		final ApplicationContext applicationContext = Mockito.mock(ApplicationContext.class);
+		final var applicationContext = Mockito.mock(ApplicationContext.class);
 		SpringUtils.setSharedApplicationContext(applicationContext);
 		Mockito.when(applicationContext.getBean(ServicePluginLocator.class)).thenReturn(mockLocator);
 		Mockito.when(applicationContext.getBean(SecurityHelper.class)).thenReturn(securityHelper);
@@ -132,7 +130,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 	void cleanTrigger() throws SchedulerException {
 
 		// Remove all previous VM trigger
-		final Scheduler scheduler = vmSchedulerFactoryBean.getScheduler();
+		final var scheduler = vmSchedulerFactoryBean.getScheduler();
 		scheduler.unscheduleJobs(new ArrayList<>(
 				scheduler.getTriggerKeys(GroupMatcher.groupEquals(VmScheduleResource.SCHEDULE_TRIGGER_GROUP))));
 	}
@@ -146,7 +144,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 	@Test
 	void execute() throws Exception {
-		final VmExecutionResource resource = newVmExecutionResource();
+		final var resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
 		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(new ArgumentMatcher<VmExecution>() {
@@ -159,8 +157,8 @@ class VmExecutionResourceTest extends AbstractServerTest {
 			}
 
 		}));
-		final VmExecutionStatus task = resource.execute(subscription, VmOperation.OFF);
-		final VmExecution execution = vmExecutionRepository.findOneExpected(task.getExecution().getId());
+		final var task = resource.execute(subscription, VmOperation.OFF);
+		final var execution = vmExecutionRepository.findOneExpected(task.getExecution().getId());
 		Assertions.assertEquals("my-vm", execution.getVm());
 		Assertions.assertEquals("status", execution.getStatusText());
 		Assertions.assertEquals(VmOperation.OFF, execution.getOperation());
@@ -168,7 +166,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 	@Test
 	void executeNotFinishedRemote() throws Exception {
-		final VmExecutionResource resource = newVmExecutionResource();
+		final var resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
 		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(new ArgumentMatcher<VmExecution>() {
@@ -181,15 +179,15 @@ class VmExecutionResourceTest extends AbstractServerTest {
 			}
 
 		}));
-		final Vm nonBusyVm = new Vm();
-		final Vm busyVm = new Vm();
+		final var nonBusyVm = new Vm();
+		final var busyVm = new Vm();
 		busyVm.setBusy(true);
 		// First call : no previous task, so "startTask" is accepted.
 		// Second call : the task is running but not completed remotely, "endTask" give busy VM
 		Mockito.doReturn(busyVm).when(mockVmTool).getVmDetails(ArgumentMatchers.any());
 
 		Assertions.assertNull(resource.getTask(subscription));
-		final VmExecutionStatus task1 = resource.execute(subscription, VmOperation.OFF);
+		final var task1 = resource.execute(subscription, VmOperation.OFF);
 
 		// Just after an execution, VM status is not fetched
 		Assertions.assertNull(task1.getVm());
@@ -204,7 +202,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		// Second call : the task is running but not completed remotely, "endTask" give busy VM
 		em.clear();
 		Mockito.doReturn(nonBusyVm, busyVm, busyVm, busyVm).when(mockVmTool).getVmDetails(ArgumentMatchers.any());
-		final VmExecutionStatus task2 = resource.execute(subscription, VmOperation.OFF);
+		final var task2 = resource.execute(subscription, VmOperation.OFF);
 		Assertions.assertNotNull(task2.getVm());
 		Assertions.assertTrue(task2.isFinished());
 		Assertions.assertFalse(task2.isFinishedRemote());
@@ -218,7 +216,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		// Set as remotely finished the task
 		em.clear();
 		Mockito.doReturn(nonBusyVm).when(mockVmTool).getVmDetails(ArgumentMatchers.any());
-		final VmExecutionStatus task = resource.getTask(subscription);
+		final var task = resource.getTask(subscription);
 		Assertions.assertTrue(task.isFinishedRemote());
 		Assertions.assertEquals(VmOperation.OFF, task.getOperation());
 		Assertions.assertNotNull(task.getVm());
@@ -234,8 +232,8 @@ class VmExecutionResourceTest extends AbstractServerTest {
 	 */
 	@Test
 	void executeDefault() throws Exception {
-		final VmExecution execution = new VmExecution();
-		final Subscription subscription = new Subscription();
+		final var execution = new VmExecution();
+		final var subscription = new Subscription();
 		subscription.setId(1);
 		execution.setSubscription(subscription);
 		new VmExecutionServicePlugin() {
@@ -254,18 +252,18 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 	@Test
 	void executeUnavailablePlugin() throws Exception {
-		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
-		final Node node = new Node();
+		final var entity = subscriptionRepository.findOneExpected(subscription);
+		final var node = new Node();
 		node.setId("_deleted_plugin_");
 		node.setName("any");
 		nodeRepository.saveAndFlush(node);
 		entity.setNode(node);
 		subscriptionRepository.saveAndFlush(entity);
 
-		final VmExecutionStatus task = newVmExecutionResource().execute(entity, VmOperation.OFF);
+		final var task = newVmExecutionResource().execute(entity, VmOperation.OFF);
 
 		// Execution is logged but failed
-		final VmExecution execution = vmExecutionRepository.findOneExpected(task.getExecution().getId());
+		final var execution = vmExecutionRepository.findOneExpected(task.getExecution().getId());
 		Assertions.assertNull(execution.getVm());
 		Assertions.assertNull(execution.getVm());
 		Assertions.assertFalse(execution.isSucceed());
@@ -276,7 +274,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 	@Test
 	void executeError() throws Exception {
-		final VmExecutionResource resource = newVmExecutionResource();
+		final var resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
 		Mockito.doThrow(new AssertionError("_some_error_")).when(mockVmTool)
@@ -295,10 +293,10 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 	@Test
 	void downloadHistoryReport() throws Exception {
-		final VmExecutionResource resource = newVmExecutionResource();
+		final var resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
-		final AtomicReference<VmOperation> operation = new AtomicReference<>(null);
+		final var operation = new AtomicReference<VmOperation>(null);
 
 		// The third call is skipped
 		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(new ArgumentMatcher<VmExecution>() {
@@ -312,9 +310,9 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		Mockito.doReturn(new Vm()).when(mockVmTool).getVmDetails(ArgumentMatchers.any());
 
 		// Report without executions
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		var output = new ByteArrayOutputStream();
 		((StreamingOutput) resource.downloadHistoryReport(subscription, "file1").getEntity()).write(output);
-		List<String> lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
+		var lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(1, lines.size());
 		Assertions.assertEquals(
 				"subscription;project;projectKey;projectName;node;dateHMS;timestamp;previousState;operation;vm;trigger;succeed;statusText;errorText",
@@ -323,12 +321,12 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 		// Manual execution
 		operation.set(VmOperation.OFF);
-		VmExecutionStatus task = resource.execute(subscription, VmOperation.OFF);
+		var task = resource.execute(subscription, VmOperation.OFF);
 		vmExecutionRepository.findOneExpected(task.getExecution().getId()).setStatusText("status1");
 
 		// Manual execution by schedule, by pass the security check
 		securityHelper.setUserName(SecurityHelper.SYSTEM_USERNAME);
-		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
+		final var entity = subscriptionRepository.findOneExpected(subscription);
 		operation.set(VmOperation.SHUTDOWN);
 		task = resource.execute(entity, VmOperation.ON);
 		vmExecutionRepository.findOneExpected(task.getExecution().getId()).setVm("vm1");
@@ -385,10 +383,10 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 	@Test
 	void downloadNodeSchedulesReport() throws Exception {
-		final VmExecutionResource resource = newVmExecutionResource();
+		final var resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
-		final AtomicReference<VmOperation> operation = new AtomicReference<>(null);
+		final var operation = new AtomicReference<VmOperation>(null);
 
 		// The third call is skipped
 		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(new ArgumentMatcher<VmExecution>() {
@@ -403,9 +401,9 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		Mockito.doReturn(new Vm()).when(mockVmTool).getVmDetails(ArgumentMatchers.any());
 
 		// Report without executions
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		var output = new ByteArrayOutputStream();
 		((StreamingOutput) resource.downloadNodeSchedulesReport("service:vm:test", "file1").getEntity()).write(output);
-		List<String> lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
+		var lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(2, lines.size());
 		Assertions.assertEquals(
 				"subscription;project;projectKey;projectName;node;cron;operation;lastDateHMS;lastTimestamp;previousState;lastOperation;vm;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp",
@@ -419,12 +417,12 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 		// Manual execution
 		operation.set(VmOperation.OFF);
-		VmExecutionStatus task = resource.execute(subscription, VmOperation.OFF);
+		var task = resource.execute(subscription, VmOperation.OFF);
 		vmExecutionRepository.findOneExpected(task.getExecution().getId()).setStatusText("status1");
 
 		// Manual execution by schedule, by pass the security check
 		securityHelper.setUserName(SecurityHelper.SYSTEM_USERNAME);
-		final Subscription entity = subscriptionRepository.findOneExpected(subscription);
+		final var entity = subscriptionRepository.findOneExpected(subscription);
 		operation.set(VmOperation.SHUTDOWN);
 		task = resource.execute(entity, VmOperation.ON);
 		vmExecutionRepository.findOneExpected(task.getExecution().getId()).setVm("vm1");
@@ -459,13 +457,13 @@ class VmExecutionResourceTest extends AbstractServerTest {
 				"\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;INVALID;OFF;.+;.+;POWERED_ON;SHUTDOWN;vm1;fdaugan;true;;;ERROR;ERROR"));
 
 		// Add another schedule to the same subscription, with an execution
-		final VmSchedule schedule = new VmSchedule();
+		final var schedule = new VmSchedule();
 		schedule.setOperation(VmOperation.ON);
 		schedule.setCron("0 0 0 1 1 ? 2049");
 		schedule.setSubscription(entity);
 		vmScheduleRepository.saveAndFlush(schedule);
 
-		final VmExecution execution = new VmExecution();
+		final var execution = new VmExecution();
 		execution.setDate(new Date());
 		execution.setSubscription(entity);
 		execution.setTrigger("_system");
@@ -490,7 +488,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 	 */
 	@Test
 	void testVm() {
-		final Vm vm = new Vm();
+		final var vm = new Vm();
 		vm.setBusy(true);
 		vm.setCpu(1);
 		vm.setDeployed(true);

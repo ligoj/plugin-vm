@@ -31,9 +31,9 @@ class VmJobTest {
 
 	@Test
 	void format() {
-		final VmSchedule vmSchedule = new VmSchedule();
+		final var vmSchedule = new VmSchedule();
 		vmSchedule.setId(6789);
-		final Subscription subscription = new Subscription();
+		final var subscription = new Subscription();
 		subscription.setId(12345);
 		vmSchedule.setSubscription(subscription);
 		Assertions.assertEquals("6789-12345", VmJob.format(vmSchedule));

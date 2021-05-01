@@ -12,12 +12,12 @@ public enum SnapshotStatus {
 	 * Snapshot is available and finished.
 	 */
 	AVAILABLE,
-	
+
 	/**
 	 * Snapshot is pending.
 	 */
 	PENDING,
-	
+
 	/**
 	 * Snapshot is finished, and whit error.
 	 */

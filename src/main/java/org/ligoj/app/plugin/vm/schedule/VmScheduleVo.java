@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class VmScheduleVo {
-	
+
 	/**
 	 * Optional identifier.
 	 */

@@ -5,7 +5,6 @@ package org.ligoj.app.plugin.vm.schedule;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -19,7 +18,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.vm.VmResource;
 import org.ligoj.app.plugin.vm.dao.VmExecutionRepository;
 import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
@@ -32,7 +30,6 @@ import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.quartz.CronExpression;
 import org.quartz.CronScheduleBuilder;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
@@ -88,10 +85,8 @@ public class VmScheduleResource implements InitializingBean {
 	/**
 	 * Remove all schedules from memory, Quartz and database.
 	 *
-	 * @param subscription
-	 *            The parent subscription holding the schedules.
-	 * @throws SchedulerException
-	 *             When quartz cannot remove the schedules.
+	 * @param subscription The parent subscription holding the schedules.
+	 * @throws SchedulerException When quartz cannot remove the schedules.
 	 */
 	@Transactional
 	public void delete(final int subscription) throws SchedulerException {
@@ -104,12 +99,9 @@ public class VmScheduleResource implements InitializingBean {
 	/**
 	 * Delete the schedule entity. Related subscription's visibility is checked.
 	 *
-	 * @param subscription
-	 *            The target subscription. The subscription cannot be changed for a schedule.
-	 * @param schedule
-	 *            The schedule identifier to delete.
-	 * @throws SchedulerException
-	 *             When the schedule cannot be done by Quartz.
+	 * @param subscription The target subscription. The subscription cannot be changed for a schedule.
+	 * @param schedule     The schedule identifier to delete.
+	 * @throws SchedulerException When the schedule cannot be done by Quartz.
 	 */
 	@DELETE
 	@Path("{id:\\d+}")
@@ -130,10 +122,8 @@ public class VmScheduleResource implements InitializingBean {
 	 * Remove a schedule of this subscription for a specific operation from the current scheduler, then from the data
 	 * base.
 	 *
-	 * @param schedule
-	 *            The schedule to remove from quartz.
-	 * @throws SchedulerException
-	 *             When the schedule cannot be deleted by Quartz.
+	 * @param schedule The schedule to remove from quartz.
+	 * @throws SchedulerException When the schedule cannot be deleted by Quartz.
 	 */
 	private void unschedule(final int schedule) throws SchedulerException {
 		unscheduleQuartz(schedule);
@@ -150,10 +140,8 @@ public class VmScheduleResource implements InitializingBean {
 	/**
 	 * Remove all schedules of this subscription from the current scheduler, then from the data base.
 	 *
-	 * @param subscription
-	 *            The parent subscription holding the schedules.
-	 * @throws SchedulerException
-	 *             When quartz cannot remove the schedules.
+	 * @param subscription The parent subscription holding the schedules.
+	 * @throws SchedulerException When quartz cannot remove the schedules.
 	 */
 	protected void unscheduleAll(final int subscription) throws SchedulerException {
 		// Remove current schedules from the memory
@@ -168,7 +156,7 @@ public class VmScheduleResource implements InitializingBean {
 	 */
 	private void unscheduleAll(final Predicate<TriggerKey> predicate) throws SchedulerException {
 		// Remove current schedules from the memory
-		final Scheduler scheduler = vmSchedulerFactoryBean.getObject();
+		final var scheduler = vmSchedulerFactoryBean.getObject();
 		for (final TriggerKey triggerKey : scheduler.getTriggerKeys(GroupMatcher.groupEquals(SCHEDULE_TRIGGER_GROUP))) {
 			if (predicate.test(triggerKey)) {
 				// Match subscription and operation, unschedule this trigger
@@ -183,8 +171,8 @@ public class VmScheduleResource implements InitializingBean {
 	private VmSchedule persistTrigger(final VmSchedule schedule) throws SchedulerException {
 		// The trigger for the common VM Job will the following convention :
 		// schedule.id-subscription.id
-		final String id = VmJob.format(schedule);
-		final JobDetailImpl object = (JobDetailImpl) vmJobDetailFactoryBean.getObject();
+		final var id = VmJob.format(schedule);
+		final var object = (JobDetailImpl) vmJobDetailFactoryBean.getObject();
 		object.getJobDataMap().put("vmServicePlugin", this);
 		final Trigger trigger = TriggerBuilder.newTrigger().withIdentity(id, SCHEDULE_TRIGGER_GROUP)
 				.withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCron())
@@ -202,7 +190,7 @@ public class VmScheduleResource implements InitializingBean {
 	@Transactional
 	public void afterPropertiesSet() throws SchedulerException {
 		// Recreate all schedules from the database
-		final List<VmSchedule> schedules = repository.findAll();
+		final var schedules = repository.findAll();
 		log.info("Schedules {} jobs from database", schedules.size());
 		for (final VmSchedule schedule : schedules) {
 			persistTrigger(schedule);
@@ -212,19 +200,17 @@ public class VmScheduleResource implements InitializingBean {
 	/**
 	 * Return all schedules related to given subscription.
 	 *
-	 * @param subscription
-	 *            The subscription identifier.
+	 * @param subscription The subscription identifier.
 	 * @return All schedules related to given subscription.
-	 * @throws ParseException
-	 *             When CRON cannot be parsed.
+	 * @throws ParseException When CRON cannot be parsed.
 	 */
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public List<VmScheduleVo> findAll(final int subscription) throws ParseException {
 		final List<VmScheduleVo> schedules = new ArrayList<>();
-		final Date now = DateUtils.newCalendar().getTime();
+		final var now = DateUtils.newCalendar().getTime();
 		for (final VmSchedule schedule : repository.findBySubscription(subscription)) {
 			// Copy basic attributes
-			final VmScheduleVo vo = new VmScheduleVo();
+			final var vo = new VmScheduleVo();
 			vo.setCron(schedule.getCron());
 			vo.setOperation(schedule.getOperation());
 			vo.setId(schedule.getId());
@@ -237,15 +223,12 @@ public class VmScheduleResource implements InitializingBean {
 	/**
 	 * Create a new schedule.
 	 *
-	 * @param subscription
-	 *            The target subscription. The subscription cannot be changed for a schedule.
-	 * @param schedule
-	 *            The schedule to save or update. The CRON expression may be either in the 5 either in 6 parts. The
-	 *            optional 6th corresponds to the "seconds" and will be prepended to the expression to conform to Quartz
-	 *            format.
+	 * @param subscription The target subscription. The subscription cannot be changed for a schedule.
+	 * @param schedule     The schedule to save or update. The CRON expression may be either in the 5 either in 6 parts.
+	 *                     The optional 6th corresponds to the "seconds" and will be prepended to the expression to
+	 *                     conform to Quartz format.
 	 * @return The created schedule identifier.
-	 * @throws SchedulerException
-	 *             When the schedule cannot be done by Quartz.
+	 * @throws SchedulerException When the schedule cannot be done by Quartz.
 	 */
 	@POST
 	@Transactional
@@ -257,21 +240,18 @@ public class VmScheduleResource implements InitializingBean {
 	/**
 	 * Update an existing schedule.
 	 *
-	 * @param subscription
-	 *            The target subscription. The subscription cannot be changed for a schedule.
-	 * @param schedule
-	 *            The schedule to save or update. The CRON expression may be either in the 5 either in 6 parts. The
-	 *            optional 6th corresponds to the "seconds" and will be prepended to the expression to conform to Quartz
-	 *            format.
-	 * @throws SchedulerException
-	 *             When the schedule cannot be done by Quartz.
+	 * @param subscription The target subscription. The subscription cannot be changed for a schedule.
+	 * @param schedule     The schedule to save or update. The CRON expression may be either in the 5 either in 6 parts.
+	 *                     The optional 6th corresponds to the "seconds" and will be prepended to the expression to
+	 *                     conform to Quartz format.
+	 * @throws SchedulerException When the schedule cannot be done by Quartz.
 	 */
 	@PUT
 	@Transactional
 	public void update(@PathParam("subscription") final int subscription, final VmScheduleVo schedule)
 			throws SchedulerException {
 		// Check the schedule is related to the subscription
-		final VmSchedule entity = checkOwnership(subscription, schedule.getId());
+		final var entity = checkOwnership(subscription, schedule.getId());
 
 		// Persist the new schedules for each provided CRON
 		checkAndSave(subscription, schedule, entity);
@@ -284,7 +264,7 @@ public class VmScheduleResource implements InitializingBean {
 
 	private VmSchedule checkAndSave(final int subscription, final VmScheduleVo schedule, final VmSchedule entity) {
 		// Check the subscription is visible
-		final Subscription subscriptionEntity = subscriptionResource.checkVisible(subscription);
+		final var subscriptionEntity = subscriptionResource.checkVisible(subscription);
 
 		if (schedule.getCron().split(" ").length == 6) {
 			// Add the missing "seconds" part
@@ -312,14 +292,12 @@ public class VmScheduleResource implements InitializingBean {
 	/**
 	 * Check the given schedule exists and is related to given subscription.
 	 *
-	 * @param subscription
-	 *            The subscription holder.
-	 * @param schedule
-	 *            The target schedule identifier.
+	 * @param subscription The subscription holder.
+	 * @param schedule     The target schedule identifier.
 	 * @return The resolved schedule when found and owned by the subscription.
 	 */
 	private VmSchedule checkOwnership(final int subscription, final int schedule) {
-		final VmSchedule entity = repository.findOneExpected(schedule);
+		final var entity = repository.findOneExpected(schedule);
 		if (entity.getSubscription().getId().intValue() != subscription) {
 			throw new EntityNotFoundException(String.valueOf(schedule));
 		}

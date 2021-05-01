@@ -32,12 +32,10 @@ public class VmSnapshotStatus extends AbstractLongTaskSubscription {
 	private String phase;
 
 	/**
-	 * A flag indicating the remote status. This flag complete the "finished" flag.
-	 * All instruction have been sent, no more API call to do, and yet the resource
-	 * is not yet available because of the asynchronous execution. When
-	 * <code>true</code>, this is global availability. Otherwise, when
-	 * {@link #isFinished()} is <code>true</code>, the API have been sent but not
-	 * completed.
+	 * A flag indicating the remote status. This flag complete the "finished" flag. All instruction have been sent, no
+	 * more API call to do, and yet the resource is not yet available because of the asynchronous execution. When
+	 * <code>true</code>, this is global availability. Otherwise, when {@link #isFinished()} is <code>true</code>, the
+	 * API have been sent but not completed.
 	 */
 	private boolean finishedRemote;
 
@@ -50,7 +48,7 @@ public class VmSnapshotStatus extends AbstractLongTaskSubscription {
 	 * The related provider snapshot identifier.
 	 */
 	private String snapshotInternalId;
-	
+
 	/**
 	 * The associated snapshot operation.
 	 */

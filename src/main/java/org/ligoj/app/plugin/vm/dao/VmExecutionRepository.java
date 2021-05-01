@@ -16,9 +16,8 @@ public interface VmExecutionRepository extends RestRepository<VmExecution, Integ
 
 	/**
 	 * Return the each last executions related to the given node or sub-node. Security is not involved.
-	 * 
-	 * @param node
-	 *            The node identifier to filter.
+	 *
+	 * @param node The node identifier to filter.
 	 * @return The schedules linked to the related node or sub-node.
 	 */
 	@Query("SELECT ve FROM VmExecution ve INNER JOIN FETCH ve.subscription AS s "
@@ -28,9 +27,8 @@ public interface VmExecutionRepository extends RestRepository<VmExecution, Integ
 
 	/**
 	 * Return all executions related to given subscription and ordered from the most to the least recent date.
-	 * 
-	 * @param subscription
-	 *            The related subscription.
+	 *
+	 * @param subscription The related subscription.
 	 * @return All executions associated to given subscription.
 	 */
 	@Query("FROM VmExecution WHERE subscription.id = :subscription ORDER BY id DESC")

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.transaction.Transactional;
 
@@ -27,11 +26,9 @@ import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
 import org.ligoj.app.plugin.vm.model.VmOperation;
 import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.app.plugin.vm.schedule.VmScheduleResource;
-import org.ligoj.app.plugin.vm.schedule.VmScheduleVo;
 import org.ligoj.app.plugin.vm.snapshot.Snapshotting;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.mockito.Mockito;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +78,7 @@ class VmResourceTest extends AbstractServerTest {
 	void cleanTrigger() throws SchedulerException {
 
 		// Remove all previous VM trigger
-		final Scheduler scheduler = vmSchedulerFactoryBean.getScheduler();
+		final var scheduler = vmSchedulerFactoryBean.getScheduler();
 		scheduler.unscheduleJobs(new ArrayList<>(
 				scheduler.getTriggerKeys(GroupMatcher.groupEquals(VmScheduleResource.SCHEDULE_TRIGGER_GROUP))));
 	}
@@ -95,12 +92,12 @@ class VmResourceTest extends AbstractServerTest {
 
 	@Test
 	void delete() throws SchedulerException {
-		final Project project = new Project();
+		final var project = new Project();
 		project.setName("TEST");
 		project.setPkey("test");
 		em.persist(project);
 
-		final Subscription subscription = new Subscription();
+		final var subscription = new Subscription();
 		subscription.setProject(project);
 		subscription.setNode(nodeRepository.findOneExpected("service:vm"));
 		em.persist(subscription);
@@ -120,12 +117,12 @@ class VmResourceTest extends AbstractServerTest {
 
 	@Test
 	void getConfiguration() throws ParseException {
-		final VmResource resource = new VmResource();
+		final var resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
 
-		final VmConfigurationVo configuration = resource.getConfiguration(subscription);
-		final List<VmScheduleVo> schedules = configuration.getSchedules();
+		final var configuration = resource.getConfiguration(subscription);
+		final var schedules = configuration.getSchedules();
 		Assertions.assertEquals(1, schedules.size());
 		Assertions.assertEquals("0 0 0 1 1 ? 2050", schedules.get(0).getCron());
 		Assertions.assertEquals(getDate(2050, 1, 1, 0, 0, 0), schedules.get(0).getNext());
@@ -140,7 +137,7 @@ class VmResourceTest extends AbstractServerTest {
 
 	@Test
 	void getConfigurationSupportSnapshot() throws ParseException {
-		final VmResource resource = new VmResource();
+		final var resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
 		Mockito.doReturn(Mockito.mock(Snapshotting.class)).when(resource.locator).getResource("service:vm:test:test",

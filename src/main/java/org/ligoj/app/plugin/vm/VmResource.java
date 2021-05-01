@@ -13,7 +13,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.ligoj.app.api.ConfigurablePlugin;
-import org.ligoj.app.model.Subscription;
 import org.ligoj.app.plugin.vm.schedule.VmScheduleResource;
 import org.ligoj.app.plugin.vm.snapshot.Snapshotting;
 import org.ligoj.app.resource.ServicePluginLocator;
@@ -69,10 +68,10 @@ public class VmResource extends AbstractServicePlugin implements ConfigurablePlu
 	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public VmConfigurationVo getConfiguration(@PathParam("subscription") final int subscription) throws ParseException {
 		// Check the subscription is visible
-		final Subscription entity = subscriptionResource.checkVisible(subscription);
+		final var entity = subscriptionResource.checkVisible(subscription);
 
 		// Get the details
-		final VmConfigurationVo result = new VmConfigurationVo();
+		final var result = new VmConfigurationVo();
 		result.setSchedules(scheduleResource.findAll(subscription));
 
 		// Add snapshot capability
