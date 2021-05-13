@@ -157,7 +157,7 @@ public class VmScheduleResource implements InitializingBean {
 	private void unscheduleAll(final Predicate<TriggerKey> predicate) throws SchedulerException {
 		// Remove current schedules from the memory
 		final var scheduler = vmSchedulerFactoryBean.getObject();
-		for (final TriggerKey triggerKey : scheduler.getTriggerKeys(GroupMatcher.groupEquals(SCHEDULE_TRIGGER_GROUP))) {
+		for (final var triggerKey : scheduler.getTriggerKeys(GroupMatcher.groupEquals(SCHEDULE_TRIGGER_GROUP))) {
 			if (predicate.test(triggerKey)) {
 				// Match subscription and operation, unschedule this trigger
 				scheduler.unscheduleJob(triggerKey);
