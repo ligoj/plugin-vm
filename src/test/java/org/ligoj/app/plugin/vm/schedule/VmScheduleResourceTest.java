@@ -195,16 +195,18 @@ class VmScheduleResourceTest extends AbstractServerTest {
 
 	@Test
 	void createInvalidCron() {
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			resource.create(subscription, newSchedule("ERROR_CRON", VmOperation.OFF));
-		}), "cron", "vm-cron");
+		final var schedule = newSchedule("ERROR_CRON", VmOperation.OFF);
+		MatcherUtil.assertThrows(
+				Assertions.assertThrows(ValidationJsonException.class, () -> resource.create(subscription, schedule)),
+				"cron", "vm-cron");
 	}
 
 	@Test
 	void createInvalidCronEverySecond() {
-		MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class, () -> {
-			resource.create(subscription, newSchedule("* * * ? * *", VmOperation.OFF));
-		}), "cron", "vm-cron-second");
+		final var schedule = newSchedule("* * * ? * *", VmOperation.OFF);
+		MatcherUtil.assertThrows(
+				Assertions.assertThrows(ValidationJsonException.class, () -> resource.create(subscription, schedule)),
+				"cron", "vm-cron-second");
 	}
 
 	private VmScheduleVo newSchedule(final String cron, final VmOperation operation) {

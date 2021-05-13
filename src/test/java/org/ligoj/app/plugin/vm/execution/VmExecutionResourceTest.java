@@ -411,7 +411,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 		// No last execution available
 		Assertions.assertTrue(lines.get(1).matches(
-				"\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;;;;;;;;;;2050/01/01 00:00:00;2524604400000"),
+				"\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;;;;;;;;;;2050/01/01 00:00:00;252460\\d{7}"),
 				"Was : " + lines.get(1));
 		output.close();
 

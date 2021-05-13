@@ -15,21 +15,6 @@ import org.ligoj.app.plugin.vm.model.VmOperation;
 public interface VmExecutionServicePlugin extends ServicePlugin {
 
 	/**
-	 * Execute a VmOperation to the associated VM. If a virtual machine is writing to disk when it receives a Power Off
-	 * command, data corruption may occur.
-	 *
-	 * @param subscription the subscription's identifier.
-	 * @param operation    The operation to execute.
-	 * @throws Exception Any exception while executing the operation.
-	 * @deprecated Use {@link #execute(VmExecution)}, it contains all information and can complete the execution
-	 *             context.
-	 */
-	@Deprecated(since = "1.3.1")
-	default void execute(int subscription, VmOperation operation) throws Exception { // NOSONAR
-		// nothing to do
-	}
-
-	/**
 	 * Get the VM configuration.
 	 *
 	 * @param parameters the subscription parameters.
@@ -49,6 +34,6 @@ public interface VmExecutionServicePlugin extends ServicePlugin {
 	 * @since 1.3.1
 	 */
 	default void execute(final VmExecution execution) throws Exception {
-		execute(execution.getSubscription().getId(), execution.getOperation());
+		// nothing to do
 	}
 }

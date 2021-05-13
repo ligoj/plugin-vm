@@ -345,7 +345,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 		writer.write(';');
 		writer.write(project.getPkey());
 		writer.write(';');
-		writer.write(project.getName().replaceAll("\"", "'"));
+		writer.write(project.getName().replace('\"', '\''));
 		writer.write(';');
 		writer.write(subscription.getNode().getId());
 	}
