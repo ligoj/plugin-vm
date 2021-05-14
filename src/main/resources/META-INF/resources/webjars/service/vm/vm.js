@@ -103,11 +103,10 @@ define(function () {
 						if (volumes && volumes.length) {
 							// Add volume details : size, name, id
 							var result = ' <span class="small">(' + volumes.length + ')</span> ';
-							for (var index in volumes) {
-								var volume = volumes[index];
-								total += volume.size || 0;
-								result += ' <span data-toggle="tooltip" title="Id: ' + volume.id + '<br>Name: ' + volume.name + '"><i class="fas fa-database"></i> ' + formatManager.formatSize(volume.size * 1024 * 1024 * 1024, 3) + ' ' + volume.name + '</span>';
-							}
+							volumes.forEach(v => {
+								total += v.size || 0;
+								result += ' <span data-toggle="tooltip" title="Id: ' + v.id + '<br>Name: ' + v.name + '"><i class="fas fa-database"></i> ' + formatManager.formatSize(v.size * 1024 * 1024 * 1024, 3) + ' ' + v.name + '</span>';
+							});
 							if (mode === 'display') {
 								return formatManager.formatSize(total * 1024 * 1024 * 1024, 3) + result;
 							}
@@ -176,27 +175,17 @@ define(function () {
 		/**
 		 * Return true when there is at least one pending snapshot.
 		 */
-		hasPendingSnapshot: function (snapshots) {
-			for (var index = 0; index < snapshots.length; index++) {
-				var snapshot = snapshots[index];
-				if (current.isPending(snapshot)) {
-					return true;
-				}
-			}
-			return false;
-		},
+		hasPendingSnapshot: snapshots => snapshots.some(current.isPending),
 
 		/**
 		 * Return true when the given snapshot is not in a stable operation.
 		 */
-		isPending: function (snapshot) {
-			return snapshot.pending || snapshot.operation === 'delete';
-		},
+		isPending: snapshot => snapshot.pending || snapshot.operation === 'delete',
 
 		/**
 		 * Create a snapshot.
 		 */
-		createSnapshot: function (e) {
+		createSnapshot: function () {
 			current.disableSnapshot();
 			var subscription = current.model;
 			var stop = $(e.target).closest('li').is('.vm-snapshot-create-stop');
@@ -332,15 +321,10 @@ define(function () {
 		initializeVmConfiguration: function () {
 			current.initializeSchedulesTable();
 
-			var operations = [];
-			for (var operation in current.vmOperations) {
-				if (current.vmOperations.hasOwnProperty(operation)) {
-					operations.push({
-						id: operation,
-						text: current.formatOperation(operation)
-					});
-				}
-			}
+			var operations = Object.keys(current.vmOperations).map(operation => ({
+				id: operation,
+				text: current.formatOperation(operation)
+			}));
 
 			_('operation').select2({
 				formatSelection: current.formatOs,
@@ -368,10 +352,10 @@ define(function () {
 				var $tr = $source.closest('tr');
 				var schedule = ($tr.length && current.table.fnGetData($tr[0])) || {};
 				current.currentId = schedule.id;
-				var operation = schedule.operation;
-				_('operation').select2('data', operation ? {
-					id: operation.toUpperCase(),
-					text: current.formatOperation(operation)
+				var op = schedule.operation;
+				_('operation').select2('data', op ? {
+					id: op,
+					text: current.formatOperation(op)
 				} : null);
 				_('cron').val(schedule.cron || '0 0 0 * * ?').trigger('change');
 				require(['i18n!jqcron/nls/messages', 'jqcron/jqcron', 'css!jqcron/jqcron'], function (messages) {
@@ -434,24 +418,16 @@ define(function () {
 			return found;
 		},
 
-		formToObject: function () {
-			var result = {
-				id: current.currentId,
-				cron: _('cron').val(),
-				operation: _('operation').val().toLowerCase()
-			};
-
-			return result;
-		},
+		formToObject: () => ({
+			id: current.currentId,
+			cron: _('cron').val(),
+			operation: _('operation').val().toLowerCase()
+		}),
 
 		/**
 		 * Render VM operations and scheduler.
 		 */
-		renderFeatures: function (subscription) {
-			// Configuration link
-			return '<a href="#/home/project/' + subscription.project + '/subscription/' + subscription.id + '" class="feature configure-trigger" data-toggle="tooltip" title="' + current.$messages.configure + '">' +
-				'<i class="fas fa-cog"></i></a>';
-		},
+		renderFeatures: subscription => `<a href="#/home/project/${subscription.project}/subscription/${subscription.id}" class="feature configure-trigger" data-toggle="tooltip" title="${current.$messages.configure}"><i class="fas fa-cog"></i></a>`,
 
 		/**
 		 * Display the status of the VM
@@ -480,26 +456,20 @@ define(function () {
 		},
 
 		renderVmOperationButtons: function ($features) {
-			var operationHtml = '<div class="btn-group btn-link feature dropdown operations dropup" data-container="body" data-toggle="tooltip" title="' +
-				current.$messages['service:vm:operation'] + '"><i class="fas fa-power-off dropdown-toggle" data-toggle="dropdown"></i>' +
-				'<ul class="dropdown-menu dropdown-menu-right">';
+			var operationHtml = `<div class="btn-group btn-link feature dropdown operations dropup" data-container="body" data-toggle="tooltip" title="${current.$messages['service:vm:operation']}"><i class="fas fa-power-off dropdown-toggle" data-toggle="dropdown"></i><ul class="dropdown-menu dropdown-menu-right">`;
 
 			// Add Off,On,Shutdown,Reset,Reboot,Suspend
-			var operation;
-			for (operation in current.vmOperations) {
-				if (current.vmOperations.hasOwnProperty(operation)) {
-					operationHtml += '<li>' + current.renderServiceServiceVmOperationButton(current.vmOperations[operation], operation) + '</li>';
-				}
+			for (const [operation, classes] of Object.entries(current.vmOperations)) {
+				operationHtml += '<li>' + current.renderServiceServiceVmOperationButton(classes, operation) + '</li>';
 			}
 			operationHtml += '</ul></div>';
 			$features.find('.feature').eq(0).before($(operationHtml));
 		},
 
 		renderServiceServiceVmOperationButton: function (icon, operation) {
-			return '<a class="feature service-vm-operation service-vm-operation-' + operation.toLowerCase() +
-				'" data-operation="' + operation + '" data-toggle="tooltip" title="' + current.$messages['service:vm:' +
-				operation.toLowerCase() + '-help'] + '"><i class="fa-fw menu-icon ' + icon + '"></i> ' + current.$messages['service:vm:' +
-				operation.toLowerCase()] + '</a>';
+			return `<a class="feature service-vm-operation service-vm-operation-${operation.toLowerCase()}" data-operation="${operation}" data-toggle="tooltip" title="${current.$messages['service:vm:' +
+				operation.toLowerCase() + '-help']}"><i class="fa-fw menu-icon ${icon}"></i> ${current.$messages['service:vm:' +
+				operation.toLowerCase()]}</a>`;
 		},
 
 		/**
@@ -512,7 +482,7 @@ define(function () {
 				'private': 'lock'
 			};
 			networks.forEach(function (network) {
-				result.push('<i class="fas fa-' + (networkTypeToIcon[network.type] || 'slash') + '"></i> ' + network.ip + (network.dns ? ' [' + network.dns + ']' : ''));
+				result.push(`<i class="fas fa-${networkTypeToIcon[network.type] || 'slash'}"></i> ${network.ip}${network.dns ? ' [' + network.dns + ']' : ''}`);
 			});
 
 			return result.join(', ');
