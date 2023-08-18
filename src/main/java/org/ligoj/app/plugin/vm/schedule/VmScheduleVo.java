@@ -5,8 +5,8 @@ package org.ligoj.app.plugin.vm.schedule;
 
 import java.util.Date;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 import org.ligoj.app.plugin.vm.model.VmOperation;
 

@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -69,9 +69,9 @@ class VmResourceTest extends AbstractServerTest {
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
-				StandardCharsets.UTF_8.name());
-		this.subscription = getSubscription("gStack");
+		persistEntities("csv", new Class[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
+				StandardCharsets.UTF_8);
+		this.subscription = getSubscription("Jupiter");
 	}
 
 	@AfterEach

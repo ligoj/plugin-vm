@@ -17,15 +17,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -187,7 +187,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 				return true;
 			} catch (final Exception e) {
 				// Unable to get the VM details
-				log.info("Unable to retrive VM information of subscription {}, node {}", subscription, node);
+				log.info("Unable to retrieve VM information of subscription {}, node {}", subscription, node);
 			}
 		}
 		return false;
@@ -213,12 +213,12 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 			@PathParam("file") final String file) {
 		subscriptionResource.checkVisible(subscription);
 		return AbstractToolPluginResource
-				.download(o -> writeHistory(o, vmExecutionRepository.findAllBySusbsciption(subscription)), file)
+				.download(o -> writeHistory(o, vmExecutionRepository.findAllBySubscription(subscription)), file)
 				.build();
 	}
 
 	/**
-	 * Return all configured schedules report of all VM related to a a visible subscription related to the given node.
+	 * Return all configured schedules report of all VM related to a visible subscription related to the given node.
 	 *
 	 * @param node The related node.
 	 * @param file The requested file name.
@@ -331,7 +331,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	}
 
 	/**
-	 * Write <code>subscription;project;projetKey;projectName;node</code>.
+	 * Write <code>subscription;project;projectKey;projectName;node</code>.
 	 *
 	 * @param writer       Target output.
 	 * @param subscription Related subscription.

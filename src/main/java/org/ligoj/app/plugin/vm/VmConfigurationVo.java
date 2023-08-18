@@ -6,7 +6,7 @@ package org.ligoj.app.plugin.vm;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.ligoj.app.plugin.vm.schedule.VmScheduleVo;
 

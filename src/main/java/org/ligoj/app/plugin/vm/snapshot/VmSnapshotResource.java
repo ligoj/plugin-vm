@@ -8,17 +8,10 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
-import javax.transaction.Transactional;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
 
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.plugin.vm.VmResource;
@@ -93,7 +86,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 			t.setStop(stop);
 		});
 		final var user = securityHelper.getLogin();
-		// The snapshot execution will done into another thread
+		// The snapshot execution will be done into another thread
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
 			securityHelper.setUserName(user);
@@ -129,7 +122,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 			t.setStop(false);
 		});
 		final var user = securityHelper.getLogin();
-		// The snapshot execution will done into another thread
+		// The snapshot execution will be done into another thread
 		Executors.newSingleThreadExecutor().submit(() -> {
 			Thread.sleep(50);
 			securityHelper.setUserName(user);
@@ -144,7 +137,7 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 	 * Return all snapshots matching to the given criteria and also associated to the given subscription.
 	 *
 	 * @param subscription The related subscription identifier.
-	 * @param criteria     The optional search criteria. Case is insensitive. May be the name or the identifier for this
+	 * @param criteria     The optional search criteria. Case is insensitive. Might be the name or the identifier for this
 	 *                     snapshot.
 	 * @return Matching snapshots ordered by descending creation date.
 	 * @throws Exception Any error while finding the snapshots.

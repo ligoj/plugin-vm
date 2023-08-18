@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,10 +61,10 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
-				StandardCharsets.UTF_8.name());
+		persistEntities("csv", new Class[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
+				StandardCharsets.UTF_8);
 
-		subscription = getSubscription("gStack");
+		subscription = getSubscription("Jupiter");
 		service = Mockito.mock(Snapshotting.class);
 		status = new VmSnapshotStatus();
 		resource = new VmSnapshotResource() {
@@ -103,9 +103,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	@Test
 	void createNotSupported() {
 		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		Assertions.assertEquals("snapshot-no-supported", Assertions.assertThrows(BusinessException.class, () -> {
-			resource.create(subscription, true);
-		}).getMessage());
+		Assertions.assertEquals("snapshot-no-supported", Assertions.assertThrows(BusinessException.class, () -> resource.create(subscription, true)).getMessage());
 	}
 
 	@Test

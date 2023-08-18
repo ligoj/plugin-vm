@@ -3,14 +3,8 @@
  */
 package org.ligoj.app.plugin.vm.schedule;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Calendar;
-
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
-
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -49,6 +43,11 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Calendar;
+
 /**
  * Test class of {@link VmScheduleResource}
  */
@@ -77,17 +76,15 @@ class VmScheduleResourceTest extends AbstractServerTest {
 
 	private VmExecutionServicePlugin mockVmTool;
 
-	private ServicePluginLocator mockServicePluginLocator;
-
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
-				StandardCharsets.UTF_8.name());
+		persistEntities("csv", new Class[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
+				StandardCharsets.UTF_8);
 
-		this.subscription = getSubscription("gStack");
+		this.subscription = getSubscription("Jupiter");
 
-		mockServicePluginLocator = Mockito.mock(ServicePluginLocator.class);
+		final var mockServicePluginLocator = Mockito.mock(ServicePluginLocator.class);
 		mockVmTool = Mockito.mock(VmExecutionServicePlugin.class);
 		Mockito.when(mockServicePluginLocator.getResource(ArgumentMatchers.anyString())).then(invocation -> {
 			final var resource = (String) invocation.getArguments()[0];
@@ -138,9 +135,9 @@ class VmScheduleResourceTest extends AbstractServerTest {
 		Mockito.when(mockContext.getBean(VmExecutionResource.class)).thenReturn(mockResource);
 
 		final var scheduler = (StdScheduler) vmSchedulerFactoryBean.getScheduler();
-		final var qscheduler = (QuartzScheduler) FieldUtils.getField(StdScheduler.class, "sched", true).get(scheduler);
+		final var qScheduler = (QuartzScheduler) FieldUtils.getField(StdScheduler.class, "sched", true).get(scheduler);
 		final var resources = (QuartzSchedulerResources) FieldUtils.getField(QuartzScheduler.class, "resources", true)
-				.get(qscheduler);
+				.get(qScheduler);
 		final var jobDetail = scheduler
 				.getJobDetail(scheduler.getJobKeys(GroupMatcher.anyJobGroup()).iterator().next());
 
@@ -155,7 +152,7 @@ class VmScheduleResourceTest extends AbstractServerTest {
 			Assertions.assertEquals(1, this.repository.findAll().size());
 
 			// Schedule all operations within the next 2 seconds
-			final var cron = "" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?";
+			final var cron = ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?";
 			final var id = mockSchedule(repository, resource.create(subscription, newSchedule(cron, VmOperation.OFF)));
 			mockSchedule(repository, resource.create(subscription, newSchedule(cron + " *", VmOperation.ON)));
 			Assertions.assertEquals(3, this.repository.findAll().size());
@@ -172,7 +169,7 @@ class VmScheduleResourceTest extends AbstractServerTest {
 			Mockito.verify(mockResource, Mockito.never()).execute(entity, VmOperation.SUSPEND);
 
 			// Update the CRON and the operation
-			final var vo = newSchedule("" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?",
+			final var vo = newSchedule(((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ?",
 					VmOperation.SHUTDOWN);
 			vo.setId(id);
 			resource.update(subscription, vo);
@@ -217,7 +214,7 @@ class VmScheduleResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	void unscheduleAll() throws Exception {
+	void deleteScheduleAll() throws Exception {
 		Assertions.assertEquals(1, repository.findAll().size());
 		repository.deleteAll();
 		Assertions.assertEquals(0, repository.findAll().size());
@@ -231,9 +228,9 @@ class VmScheduleResourceTest extends AbstractServerTest {
 		Mockito.when(mockContext.getBean(VmExecutionResource.class)).thenReturn(mockResource);
 
 		final var scheduler = (StdScheduler) vmSchedulerFactoryBean.getScheduler();
-		final var qscheduler = (QuartzScheduler) FieldUtils.getField(StdScheduler.class, "sched", true).get(scheduler);
+		final var qScheduler = (QuartzScheduler) FieldUtils.getField(StdScheduler.class, "sched", true).get(scheduler);
 		final var resources = (QuartzSchedulerResources) FieldUtils.getField(QuartzScheduler.class, "resources", true)
-				.get(qscheduler);
+				.get(qScheduler);
 		final var jobDetail = scheduler
 				.getJobDetail(scheduler.getJobKeys(GroupMatcher.anyJobGroup()).iterator().next());
 
@@ -247,7 +244,7 @@ class VmScheduleResourceTest extends AbstractServerTest {
 			((RAMJobStore) resources.getJobStore()).storeJob(jobDetail, true);
 
 			// Schedule all operations within the next 2 seconds
-			final var cron = "" + ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ? *";
+			final var cron = ((DateUtils.newCalendar().get(Calendar.SECOND) + 2) % 60) + " * * * * ? *";
 			mockSchedule(repository, resource.create(subscription, newSchedule(cron, VmOperation.ON)));
 			mockSchedule(repository, resource.create(subscription, newSchedule(cron, VmOperation.ON)));
 			mockSchedule(repository, resource.create(subscription, newSchedule(cron, VmOperation.ON)));
@@ -330,7 +327,7 @@ class VmScheduleResourceTest extends AbstractServerTest {
 		Assertions.assertEquals(0, repository.findAll().size());
 
 		// Persist again the schedule without involving Quartz
-		persistEntities("csv", new Class[] { VmSchedule.class }, StandardCharsets.UTF_8.name());
+		persistEntities("csv", new Class[]{VmSchedule.class}, StandardCharsets.UTF_8);
 		Assertions.assertEquals(1, repository.findAll().size());
 		resource.afterPropertiesSet();
 		Assertions.assertEquals(1, repository.findAll().size());

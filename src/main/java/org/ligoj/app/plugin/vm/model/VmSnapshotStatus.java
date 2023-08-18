@@ -3,15 +3,14 @@
  */
 package org.ligoj.app.plugin.vm.model;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Table;
 
-import org.ligoj.app.model.AbstractLongTaskSubscription;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.ligoj.app.model.AbstractLongTaskSubscription;
 
 /**
  * A snapshot VM operation.

@@ -15,14 +15,14 @@ import org.springframework.data.jpa.repository.Query;
 public interface VmExecutionRepository extends RestRepository<VmExecution, Integer> {
 
 	/**
-	 * Return the each last executions related to the given node or sub-node. Security is not involved.
+	 * Return last executions related to the given node or sub-node. Security is not involved.
 	 *
 	 * @param node The node identifier to filter.
 	 * @return The schedules linked to the related node or sub-node.
 	 */
-	@Query("SELECT ve FROM VmExecution ve INNER JOIN FETCH ve.subscription AS s "
+	@Query("SELECT ve FROM #{#entityName} ve INNER JOIN FETCH ve.subscription AS s "
 			+ "INNER JOIN s.node AS n WHERE (n.id = :node OR n.id LIKE CONCAT(:node, ':%'))"
-			+ " AND ve.id = (SELECT MAX(id) FROM VmExecution WHERE subscription = s)")
+			+ " AND ve.id = (SELECT MAX(CAST(ve.id as Integer)) FROM #{#entityName} v WHERE v.subscription = s)")
 	List<VmExecution> findAllByNodeLast(String node);
 
 	/**
@@ -31,6 +31,6 @@ public interface VmExecutionRepository extends RestRepository<VmExecution, Integ
 	 * @param subscription The related subscription.
 	 * @return All executions associated to given subscription.
 	 */
-	@Query("FROM VmExecution WHERE subscription.id = :subscription ORDER BY id DESC")
-	List<VmExecution> findAllBySusbsciption(int subscription);
+	@Query("FROM #{#entityName} WHERE subscription.id = :subscription ORDER BY id DESC")
+	List<VmExecution> findAllBySubscription(int subscription);
 }

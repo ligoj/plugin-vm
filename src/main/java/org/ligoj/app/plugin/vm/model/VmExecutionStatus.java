@@ -3,11 +3,11 @@
  */
 package org.ligoj.app.plugin.vm.model;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import org.ligoj.app.model.AbstractLongTaskSubscription;
 import org.ligoj.app.plugin.vm.execution.Vm;

@@ -3,16 +3,14 @@
  */
 package org.ligoj.app.plugin.vm.model;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-
-import org.ligoj.app.model.Subscription;
-import org.ligoj.bootstrap.core.model.AbstractPersistable;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.ligoj.app.model.Subscription;
+import org.ligoj.bootstrap.core.model.AbstractPersistable;
 
 /**
  * A scheduled VM operation.

@@ -3,20 +3,8 @@
  */
 package org.ligoj.app.plugin.vm.execution;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-
-import javax.transaction.Transactional;
-import javax.ws.rs.core.StreamingOutput;
-
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.StreamingOutput;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -33,17 +21,12 @@ import org.ligoj.app.plugin.vm.VmNetwork;
 import org.ligoj.app.plugin.vm.VmResource;
 import org.ligoj.app.plugin.vm.dao.VmExecutionRepository;
 import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
-import org.ligoj.app.plugin.vm.model.VmExecution;
-import org.ligoj.app.plugin.vm.model.VmExecutionStatus;
-import org.ligoj.app.plugin.vm.model.VmOperation;
-import org.ligoj.app.plugin.vm.model.VmSchedule;
-import org.ligoj.app.plugin.vm.model.VmStatus;
+import org.ligoj.app.plugin.vm.model.*;
 import org.ligoj.app.plugin.vm.schedule.VmScheduleResource;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
-import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.quartz.SchedulerException;
@@ -54,6 +37,17 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
  * Test class of {@link VmExecutionResource}
@@ -96,9 +90,9 @@ class VmExecutionResourceTest extends AbstractServerTest {
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
-		persistEntities("csv", new Class[] { Node.class, Project.class, Subscription.class, VmSchedule.class },
-				StandardCharsets.UTF_8.name());
-		this.subscription = getSubscription("gStack");
+		persistEntities("csv", new Class[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
+				StandardCharsets.UTF_8);
+		this.subscription = getSubscription("Jupiter");
 	}
 
 	private void mockContext() {
@@ -147,15 +141,10 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		final var resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
-		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(new ArgumentMatcher<VmExecution>() {
-
-			@Override
-			public boolean matches(final VmExecution argument) {
-				argument.setVm("my-vm");
-				argument.setStatusText("status");
-				return true;
-			}
-
+		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(argument -> {
+			argument.setVm("my-vm");
+			argument.setStatusText("status");
+			return true;
 		}));
 		final var task = resource.execute(subscription, VmOperation.OFF);
 		final var execution = vmExecutionRepository.findOneExpected(task.getExecution().getId());
@@ -169,15 +158,10 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		final var resource = newVmExecutionResource();
 		mockContext();
 		resource.locator = mockLocator;
-		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(new ArgumentMatcher<VmExecution>() {
-
-			@Override
-			public boolean matches(final VmExecution argument) {
-				argument.setVm("my-vm");
-				argument.setStatusText("status");
-				return true;
-			}
-
+		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(argument -> {
+			argument.setVm("my-vm");
+			argument.setStatusText("status");
+			return true;
 		}));
 		final var nonBusyVm = new Vm();
 		final var busyVm = new Vm();
@@ -251,7 +235,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	void executeUnavailablePlugin() throws Exception {
+	void executeUnavailablePlugin() {
 		final var entity = subscriptionRepository.findOneExpected(subscription);
 		final var node = new Node();
 		node.setId("_deleted_plugin_");
@@ -279,9 +263,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		resource.locator = mockLocator;
 		Mockito.doThrow(new AssertionError("_some_error_")).when(mockVmTool)
 				.execute(ArgumentMatchers.any(VmExecution.class));
-		Assertions.assertThrows(AssertionError.class, () -> {
-			resource.execute(subscription, VmOperation.OFF);
-		});
+		Assertions.assertThrows(AssertionError.class, () -> resource.execute(subscription, VmOperation.OFF));
 		Assertions.assertTrue(resource.getTask(subscription).isFinishedRemote());
 		Assertions.assertTrue(resource.getTask(subscription).isFailed());
 	}
@@ -299,13 +281,9 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		final var operation = new AtomicReference<VmOperation>(null);
 
 		// The third call is skipped
-		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(new ArgumentMatcher<VmExecution>() {
-
-			@Override
-			public boolean matches(final VmExecution argument) {
-				argument.setOperation(operation.get());
-				return true;
-			}
+		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(argument -> {
+			argument.setOperation(operation.get());
+			return true;
 		}));
 		Mockito.doReturn(new Vm()).when(mockVmTool).getVmDetails(ArgumentMatchers.any());
 
@@ -344,9 +322,9 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(3, lines.size());
 		Assertions.assertTrue(lines.get(2)
-				.matches("\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;.+;.+;;OFF;;fdaugan;true;status1;"));
+				.matches("\\d+;\\d+;ligoj-jupiter;Jupiter;service:vm:test:test;.+;.+;;OFF;;fdaugan;true;status1;"));
 		Assertions.assertTrue(lines.get(1)
-				.matches("\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;.+;.+;;SHUTDOWN;vm1;_system;true;;"));
+				.matches("\\d+;\\d+;ligoj-jupiter;Jupiter;service:vm:test:test;.+;.+;;SHUTDOWN;vm1;_system;true;;"));
 		Assertions.assertEquals(2, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
 		Assertions.assertEquals(subscription, vmExecutionRepository.findAllBy("subscription.id", subscription).get(0)
 				.getSubscription().getId().intValue());
@@ -389,14 +367,10 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		final var operation = new AtomicReference<VmOperation>(null);
 
 		// The third call is skipped
-		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(new ArgumentMatcher<VmExecution>() {
-
-			@Override
-			public boolean matches(final VmExecution argument) {
-				argument.setOperation(operation.get());
-				argument.setPreviousState(VmStatus.POWERED_ON);
-				return true;
-			}
+		Mockito.doNothing().when(mockVmTool).execute(ArgumentMatchers.argThat(argument -> {
+			argument.setOperation(operation.get());
+			argument.setPreviousState(VmStatus.POWERED_ON);
+			return true;
 		}));
 		Mockito.doReturn(new Vm()).when(mockVmTool).getVmDetails(ArgumentMatchers.any());
 
@@ -411,7 +385,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 
 		// No last execution available
 		Assertions.assertTrue(lines.get(1).matches(
-				"\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;;;;;;;;;;2050/01/01 00:00:00;252460\\d{7}"),
+						"\\d+;\\d+;ligoj-jupiter;Jupiter;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;;;;;;;;;;2050/01/01 00:00:00;252460\\d{7}"),
 				"Was : " + lines.get(1));
 		output.close();
 
@@ -440,7 +414,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(2, lines.size());
 		Assertions.assertTrue(lines.get(1).matches(
-				"\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;.+;.+;POWERED_ON;SHUTDOWN;vm1;_system;true;;;2050/01/01 00:00:00;2524604400000"),
+						"\\d+;\\d+;ligoj-jupiter;Jupiter;service:vm:test:test;0 0 0 1 1 \\? 2050;OFF;.+;.+;POWERED_ON;SHUTDOWN;vm1;_system;true;;;2050/01/01 00:00:00;2524604400000"),
 				"Was : " + lines.get(1));
 
 		// Next execution where schedule CRON has been updated
@@ -454,7 +428,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(2, lines.size());
 		Assertions.assertTrue(lines.get(1).matches(
-				"\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;INVALID;OFF;.+;.+;POWERED_ON;SHUTDOWN;vm1;fdaugan;true;;;ERROR;ERROR"));
+				"\\d+;\\d+;ligoj-jupiter;Jupiter;service:vm:test:test;INVALID;OFF;.+;.+;POWERED_ON;SHUTDOWN;vm1;fdaugan;true;;;ERROR;ERROR"));
 
 		// Add another schedule to the same subscription, with an execution
 		final var schedule = new VmSchedule();
@@ -478,7 +452,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		lines = IOUtils.readLines(new ByteArrayInputStream(output.toByteArray()), StandardCharsets.UTF_8);
 		Assertions.assertEquals(3, lines.size());
 		Assertions.assertTrue(lines.get(2).matches(
-				"\\d+;\\d+;ligoj-gstack;gStack;service:vm:test:test;0 0 0 1 1 \\? 2049;ON;.+;.+;POWERED_OFF;ON;;_system;true;;;2049/01/01 00:00:00;2493068400000"),
+						"\\d+;\\d+;ligoj-jupiter;Jupiter;service:vm:test:test;0 0 0 1 1 \\? 2049;ON;.+;.+;POWERED_OFF;ON;;_system;true;;;2049/01/01 00:00:00;2493068400000"),
 				"Was : " + lines.get(2));
 	}
 
