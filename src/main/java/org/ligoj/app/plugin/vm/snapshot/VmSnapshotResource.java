@@ -87,13 +87,15 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 		});
 		final var user = securityHelper.getLogin();
 		// The snapshot execution will be done into another thread
-		Executors.newSingleThreadExecutor().submit(() -> {
-			Thread.sleep(50);
-			securityHelper.setUserName(user);
-			snap.snapshot(task);
-			log.info("Snapshot requested for subscription {} finished", subscription);
-			return null;
-		});
+		try (var executor = Executors.newSingleThreadExecutor()) {
+			executor.submit(() -> {
+				Thread.sleep(50);
+				securityHelper.setUserName(user);
+				snap.snapshot(task);
+				log.info("Snapshot requested for subscription {} finished", subscription);
+				return null;
+			});
+		}
 		return task;
 	}
 
@@ -123,13 +125,15 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 		});
 		final var user = securityHelper.getLogin();
 		// The snapshot execution will be done into another thread
-		Executors.newSingleThreadExecutor().submit(() -> {
-			Thread.sleep(50);
-			securityHelper.setUserName(user);
-			snap.delete(task);
-			log.info("Snapshot deletion requested for subscription {}, snapshot {} finished", subscription, snapshot);
-			return null;
-		});
+		try (var executor = Executors.newSingleThreadExecutor()) {
+			executor.submit(() -> {
+				Thread.sleep(50);
+				securityHelper.setUserName(user);
+				snap.delete(task);
+				log.info("Snapshot deletion requested for subscription {}, snapshot {} finished", subscription, snapshot);
+				return null;
+			});
+		}
 		return task;
 	}
 
