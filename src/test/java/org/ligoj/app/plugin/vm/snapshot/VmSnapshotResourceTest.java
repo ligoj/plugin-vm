@@ -61,7 +61,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
-		persistEntities("csv", new Class[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
+		persistEntities("csv", new Class<?>[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
 				StandardCharsets.UTF_8);
 
 		subscription = getSubscription("Jupiter");
