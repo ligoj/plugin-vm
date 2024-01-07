@@ -20,10 +20,13 @@ public interface VmExecutionRepository extends RestRepository<VmExecution, Integ
 	 * @param node The node identifier to filter.
 	 * @return The schedules linked to the related node or sub-node.
 	 */
-	@Query("SELECT ve FROM VmExecution ve INNER JOIN FETCH ve.subscription AS s "
-			+ "INNER JOIN s.node AS n WHERE (n.id = :node OR n.id LIKE CONCAT(:node, ':%'))"
-			+ " AND ve.id = (SELECT MAX(CAST(ve.id as Integer)) FROM VmExecution v WHERE v.subscription = s)")
+	@Query("""
+			FROM VmExecution ve INNER JOIN FETCH ve.subscription AS s
+				INNER JOIN s.node AS n WHERE (n.id = :node OR n.id LIKE CONCAT(:node, ':%'))
+				 AND ve.id = (SELECT MAX(CAST(v.id as Integer)) FROM VmExecution v WHERE v.subscription = s GROUP BY v.subscription)
+			""")
 	List<VmExecution> findAllByNodeLast(String node);
+
 	/**
 	 * Return all executions related to given subscription and ordered from the most to the least recent date.
 	 *

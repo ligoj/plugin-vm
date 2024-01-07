@@ -3,31 +3,12 @@
  */
 package org.ligoj.app.plugin.vm.execution;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import org.apache.commons.lang3.StringUtils;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.ligoj.app.dao.SubscriptionRepository;
 import org.ligoj.app.model.Subscription;
@@ -35,11 +16,7 @@ import org.ligoj.app.plugin.vm.VmResource;
 import org.ligoj.app.plugin.vm.dao.VmExecutionRepository;
 import org.ligoj.app.plugin.vm.dao.VmExecutionStatusRepository;
 import org.ligoj.app.plugin.vm.dao.VmScheduleRepository;
-import org.ligoj.app.plugin.vm.model.VmExecution;
-import org.ligoj.app.plugin.vm.model.VmExecutionStatus;
-import org.ligoj.app.plugin.vm.model.VmOperation;
-import org.ligoj.app.plugin.vm.model.VmSchedule;
-import org.ligoj.app.plugin.vm.model.VmStatus;
+import org.ligoj.app.plugin.vm.model.*;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.app.resource.plugin.AbstractToolPluginResource;
 import org.ligoj.app.resource.subscription.LongTaskRunnerSubscription;
@@ -50,8 +27,12 @@ import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.io.*;
+import java.text.ParseException;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * VM Execution task runner.
@@ -233,7 +214,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 		final var schedules = vmScheduleRepository.findAllByNode(node, securityHelper.getLogin());
 
 		// Get all last execution related to given node, Key is the subscription identifier
-		final Map<Integer, VmExecution> lastExecutions = vmExecutionRepository.findAllByNodeLast(node).stream()
+		final var lastExecutions = vmExecutionRepository.findAllByNodeLast(node).stream()
 				.collect(Collectors.toMap(e -> e.getSubscription().getId(), Function.identity()));
 
 		// Get all last executions of all schedules
@@ -244,11 +225,11 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	 * Write all executions related to given subscription, from the oldest to the newest.
 	 */
 	private void writeHistory(final OutputStream output, Collection<VmExecution> executions) throws IOException {
-		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
+		final var writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
 		final var df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
 		writer.write(COMMON_CSV_HEADER
 				+ ";dateHMS;timestamp;previousState;operation;vm;trigger;succeed;statusText;errorText");
-		for (final VmExecution execution : executions) {
+		for (final var execution : executions) {
 			writeCommon(writer, execution.getSubscription());
 			writeExecutionStatus(writer, execution, df);
 		}
@@ -262,7 +243,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 	 */
 	private void writeSchedules(final OutputStream output, Collection<VmSchedule> schedules,
 			final Map<Integer, VmExecution> lastExecutions) throws IOException {
-		final Writer writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
+		final var writer = new BufferedWriter(new OutputStreamWriter(output, "cp1252"));
 		final var df = FastDateFormat.getInstance("yyyy/MM/dd HH:mm:ss");
 		final var now = DateUtils.newCalendar().getTime();
 		writer.write(COMMON_CSV_HEADER
@@ -319,15 +300,15 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 		writer.write(';');
 		writer.write(execution.getOperation().name());
 		writer.write(';');
-		writer.write(StringUtils.defaultString(execution.getVm(), ""));
+		writer.write(Objects.toString(execution.getVm(), ""));
 		writer.write(';');
 		writer.write(execution.getTrigger());
 		writer.write(';');
 		writer.write(String.valueOf(execution.isSucceed()));
 		writer.write(';');
-		writer.write(StringUtils.defaultString(execution.getStatusText(), ""));
+		writer.write(Objects.toString(execution.getStatusText(), ""));
 		writer.write(';');
-		writer.write(StringUtils.defaultString(execution.getError(), ""));
+		writer.write(Objects.toString(execution.getError(), ""));
 	}
 
 	/**
