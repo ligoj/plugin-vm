@@ -79,7 +79,7 @@ class VmScheduleResourceTest extends AbstractServerTest {
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
-		persistEntities("csv", new Class[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
+		persistEntities("csv", new Class<?>[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
 				StandardCharsets.UTF_8);
 
 		this.subscription = getSubscription("Jupiter");
@@ -327,7 +327,7 @@ class VmScheduleResourceTest extends AbstractServerTest {
 		Assertions.assertEquals(0, repository.findAll().size());
 
 		// Persist again the schedule without involving Quartz
-		persistEntities("csv", new Class[]{VmSchedule.class}, StandardCharsets.UTF_8);
+		persistEntities("csv", new Class<?>[]{VmSchedule.class}, StandardCharsets.UTF_8);
 		Assertions.assertEquals(1, repository.findAll().size());
 		resource.afterPropertiesSet();
 		Assertions.assertEquals(1, repository.findAll().size());

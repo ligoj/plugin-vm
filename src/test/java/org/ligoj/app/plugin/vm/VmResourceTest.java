@@ -69,7 +69,7 @@ class VmResourceTest extends AbstractServerTest {
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
-		persistEntities("csv", new Class[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
+		persistEntities("csv", new Class<?>[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
 				StandardCharsets.UTF_8);
 		this.subscription = getSubscription("Jupiter");
 	}
@@ -124,10 +124,10 @@ class VmResourceTest extends AbstractServerTest {
 		final var configuration = resource.getConfiguration(subscription);
 		final var schedules = configuration.getSchedules();
 		Assertions.assertEquals(1, schedules.size());
-		Assertions.assertEquals("0 0 0 1 1 ? 2050", schedules.get(0).getCron());
-		Assertions.assertEquals(getDate(2050, 1, 1, 0, 0, 0), schedules.get(0).getNext());
-		Assertions.assertNotNull(schedules.get(0).getId());
-		Assertions.assertEquals(VmOperation.OFF, schedules.get(0).getOperation());
+		Assertions.assertEquals("0 0 0 1 1 ? 2050", schedules.getFirst().getCron());
+		Assertions.assertEquals(getDate(2050, 1, 1, 0, 0, 0), schedules.getFirst().getNext());
+		Assertions.assertNotNull(schedules.getFirst().getId());
+		Assertions.assertEquals(VmOperation.OFF, schedules.getFirst().getOperation());
 		Assertions.assertFalse(configuration.isSupportSnapshot());
 
 		// Coverage only

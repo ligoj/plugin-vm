@@ -90,7 +90,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 	@BeforeEach
 	void prepareData() throws IOException {
 		// Only with Spring context
-		persistEntities("csv", new Class[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
+		persistEntities("csv", new Class<?>[]{Node.class, Project.class, Subscription.class, VmSchedule.class},
 				StandardCharsets.UTF_8);
 		this.subscription = getSubscription("Jupiter");
 	}
@@ -294,7 +294,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		Assertions.assertEquals(1, lines.size());
 		Assertions.assertEquals(
 				"subscription;project;projectKey;projectName;node;dateHMS;timestamp;previousState;operation;vm;trigger;succeed;statusText;errorText",
-				lines.get(0));
+				lines.getFirst());
 		output.close();
 
 		// Manual execution
@@ -326,7 +326,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		Assertions.assertTrue(lines.get(1)
 				.matches("\\d+;\\d+;ligoj-jupiter;Jupiter;service:vm:test:test;.+;.+;;SHUTDOWN;vm1;_system;true;;"));
 		Assertions.assertEquals(2, vmExecutionRepository.findAllBy("subscription.id", subscription).size());
-		Assertions.assertEquals(subscription, vmExecutionRepository.findAllBy("subscription.id", subscription).get(0)
+		Assertions.assertEquals(subscription, vmExecutionRepository.findAllBy("subscription.id", subscription).getFirst()
 				.getSubscription().getId().intValue());
 
 		// Delete includes executions
@@ -381,7 +381,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		Assertions.assertEquals(2, lines.size());
 		Assertions.assertEquals(
 				"subscription;project;projectKey;projectName;node;cron;operation;lastDateHMS;lastTimestamp;previousState;lastOperation;vm;lastTrigger;lastSucceed;lastStatusText;lastErrorText;nextDateHMS;nextTimestamp",
-				lines.get(0));
+				lines.getFirst());
 
 		// No last execution available
 		Assertions.assertTrue(lines.get(1).matches(
@@ -476,9 +476,9 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("name", vm.getName());
 		Assertions.assertEquals("os", vm.getOs());
 		Assertions.assertEquals(1, vm.getNetworks().size());
-		Assertions.assertEquals("dns", vm.getNetworks().get(0).getDns());
-		Assertions.assertEquals("type", vm.getNetworks().get(0).getType());
-		Assertions.assertEquals("1.2.3.4", vm.getNetworks().get(0).getIp());
+		Assertions.assertEquals("dns", vm.getNetworks().getFirst().getDns());
+		Assertions.assertEquals("type", vm.getNetworks().getFirst().getType());
+		Assertions.assertEquals("1.2.3.4", vm.getNetworks().getFirst().getIp());
 		Assertions.assertEquals(2048, vm.getRam());
 		Assertions.assertEquals(1, vm.getCpu());
 		Assertions.assertEquals(VmStatus.SUSPENDED, vm.getStatus());
