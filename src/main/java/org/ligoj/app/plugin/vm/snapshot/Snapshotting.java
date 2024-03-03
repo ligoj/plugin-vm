@@ -34,7 +34,7 @@ public interface Snapshotting {
 	 * Return all snapshots matching to the given criteria and also associated to the given subscription.
 	 *
 	 * @param subscription The related subscription identifier.
-	 * @param criteria     The optional search criteria. Case is insensitive. May be the name or the identifier for this
+	 * @param criteria     The optional search criteria. Case is insensitive. Can be the name or the identifier for this
 	 *                     snapshot.
 	 * @return Matching snapshots ordered by descending creation date.
 	 * @throws Exception Any error while finding the snapshots.

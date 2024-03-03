@@ -61,7 +61,7 @@ public class VmExecution extends AbstractPersistable<Integer> {
 	private String trigger;
 
 	/**
-	 * The error message. <code>null</code> when succeed.
+	 * The error message. <code>null</code> when succeeded.
 	 */
 	private String error;
 

@@ -93,7 +93,7 @@ define(function () {
 				columns: [{
 					data: 'date',
 					className: 'responsive-datetime',
-					render: date => moment(date).format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss')
+					render: date => moment(date).format(formatManager.messages.shortDateMomentJs + ' HH:mm:ss')
 				}, {
 					data: 'id'
 				}, {
@@ -224,7 +224,7 @@ define(function () {
 				}, {
 					data: 'next',
 					className: 'vm-schedules-next responsive-datetime',
-					render: (_i, _j, data) => moment(later.schedule(later.parse.cron(data.cron, true)).next(1)).format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss')
+					render: (_i, _j, data) => moment(later.schedule(later.parse.cron(data.cron, true)).next(1)).format(formatManager.messages.shortDateMomentJs + ' HH:mm:ss')
 				}, {
 					data: null,
 					orderable: false,
@@ -305,7 +305,7 @@ define(function () {
 
 		getNextExecution: function (cron) {
 			return cron ? moment(later.schedule(later.parse.cron(cron, true)).next(1))
-				.format(formatManager.messages.shortdateMomentJs + ' HH:mm:ss') : '';
+				.format(formatManager.messages.shortDateMomentJs + ' HH:mm:ss') : '';
 		},
 
 		/**

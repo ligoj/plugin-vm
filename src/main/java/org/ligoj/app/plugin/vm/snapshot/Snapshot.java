@@ -42,7 +42,7 @@ public class Snapshot extends DescribedBean<String> {
 
 	/**
 	 * The remote state given by the provider. The snapshot is technically completed, and is available. However, some
-	 * provider may delay the globally availability : replication, cache etc.
+	 * provider may delay the global availability : replication, cache etc.
 	 */
 	private boolean available;
 

@@ -19,8 +19,8 @@ public enum VmOperation {
 	ON,
 
 	/**
-	 * Stop gracefully the associated VM. Not all guest operating systems respond to a shut down signal from this
-	 * button. If your operating system does not respond to a shut down signal, shut down from within the operating
+	 * Stop gracefully the associated VM. Not all guest operating systems respond to a shut-down signal from this
+	 * button. If your operating system does not respond to a shut-down signal, shut down from within the operating
 	 * system, as you would with a physical machine.
 	 */
 	SHUTDOWN,

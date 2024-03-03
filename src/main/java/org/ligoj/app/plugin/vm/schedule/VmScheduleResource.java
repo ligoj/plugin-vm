@@ -119,8 +119,7 @@ public class VmScheduleResource implements InitializingBean {
 	}
 
 	/**
-	 * Remove a schedule of this subscription for a specific operation from the current scheduler, then from the data
-	 * base.
+	 * Remove a schedule of this subscription for a specific operation from the current scheduler, then from the database.
 	 *
 	 * @param schedule The schedule to remove from quartz.
 	 * @throws SchedulerException When the schedule cannot be deleted by Quartz.
@@ -138,7 +137,7 @@ public class VmScheduleResource implements InitializingBean {
 	}
 
 	/**
-	 * Remove all schedules of this subscription from the current scheduler, then from the data base.
+	 * Remove all schedules of this subscription from the current scheduler, then from the database.
 	 *
 	 * @param subscription The parent subscription holding the schedules.
 	 * @throws SchedulerException When quartz cannot remove the schedules.
@@ -152,7 +151,7 @@ public class VmScheduleResource implements InitializingBean {
 	}
 
 	/**
-	 * Remove all schedules matching the given predicate from the current scheduler, then from the data base.
+	 * Remove all schedules matching the given predicate from the current scheduler, then from the database.
 	 */
 	private void unscheduleAll(final Predicate<TriggerKey> predicate) throws SchedulerException {
 		// Remove current schedules from the memory

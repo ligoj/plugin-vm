@@ -37,7 +37,7 @@ public interface VmScheduleRepository extends RestRepository<VmSchedule, Integer
 	 * Return schedules linked to the related node or sub-node. Result is ordered by project.
 	 *
 	 * @param node The node identifier to filter.
-	 * @param user The principal user name.
+	 * @param user The principal username.
 	 * @return The schedules linked to the related node or sub-node.
 	 */
 	@Query("SELECT vs FROM VmSchedule vs INNER JOIN FETCH vs.subscription AS s INNER JOIN FETCH s.project AS p "
