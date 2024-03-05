@@ -1,4 +1,4 @@
-# :link: Ligoj VM service plugin [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-vm/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-vm) [![Download](https://api.bintray.com/packages/ligoj/maven-repo/plugin-vm/images/download.svg) ](https://bintray.com/ligoj/maven-repo/plugin-vm/_latestVersion)
+# :link: Ligoj VM service plugin [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-vm/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-vm)
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.ligoj.plugin%3Aplugin-vm&metric=coverage)](https://sonarcloud.io/dashboard?id=org.ligoj.plugin%3Aplugin-vm)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?metric=alert_status&project=org.ligoj.plugin:plugin-vm)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-vm)
