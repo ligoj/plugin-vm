@@ -297,7 +297,7 @@ public class VmScheduleResource implements InitializingBean {
 	 */
 	private VmSchedule checkOwnership(final int subscription, final int schedule) {
 		final var entity = repository.findOneExpected(schedule);
-		if (entity.getSubscription().getId().intValue() != subscription) {
+		if (entity.getSubscription().getId() != subscription) {
 			throw new EntityNotFoundException(String.valueOf(schedule));
 		}
 		return entity;

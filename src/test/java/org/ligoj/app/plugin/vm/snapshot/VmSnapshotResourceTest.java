@@ -167,7 +167,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 
 		final var list = resource.findAll(subscription, "criteria");
 		Assertions.assertEquals(1, list.size());
-		snapshot = list.get(0);
+		snapshot = list.getFirst();
 
 		// Coverage only for the API
 		Assertions.assertNotNull(snapshot.getAuthor());

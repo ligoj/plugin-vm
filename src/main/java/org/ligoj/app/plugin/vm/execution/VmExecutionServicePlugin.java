@@ -3,11 +3,10 @@
  */
 package org.ligoj.app.plugin.vm.execution;
 
-import java.util.Map;
-
 import org.ligoj.app.api.ServicePlugin;
 import org.ligoj.app.plugin.vm.model.VmExecution;
-import org.ligoj.app.plugin.vm.model.VmOperation;
+
+import java.util.Map;
 
 /**
  * Features of VM implementations.
@@ -30,7 +29,6 @@ public interface VmExecutionServicePlugin extends ServicePlugin {
 	 *                  operation can be altered. When real operation is set to <code>null</code>, the execution is
 	 *                  considered as skipped.
 	 * @throws Exception Any exception while executing the operation.
-	 * @see #execute(int, VmOperation)
 	 * @since 1.3.1
 	 */
 	default void execute(final VmExecution execution) throws Exception {
