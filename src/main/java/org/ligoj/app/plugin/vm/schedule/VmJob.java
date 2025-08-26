@@ -36,7 +36,7 @@ public class VmJob extends QuartzJobBean {
 	protected void executeInternal(final JobExecutionContext arg0) {
 		// Extract the job data to execute the operation
 		final var schedule = arg0.getMergedJobDataMap().getInt("schedule");
-		final var context = ObjectUtils.defaultIfNull((ApplicationContext) arg0.getMergedJobDataMap().get("context"),
+		final var context = ObjectUtils.getIfNull((ApplicationContext) arg0.getMergedJobDataMap().get("context"),
 				SpringUtils.getApplicationContext());
 		final var entity = context.getBean(VmScheduleRepository.class).findOneExpected(schedule);
 		log.info("Executing {} for schedule {}, subscription {}", entity.getOperation(), entity.getId(),

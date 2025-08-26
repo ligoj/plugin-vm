@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -107,7 +108,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 		execution.setOperation(operation);
 		execution.setSubscription(subscription);
 		execution.setTrigger(trigger);
-		execution.setDate(new Date());
+		execution.setDate(Instant.now());
 		final var task = self.startTask(subscription.getId(), t -> {
 			t.setFinishedRemote(false);
 			t.setOperation(operation);
@@ -294,7 +295,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 		writer.write(';');
 		writer.write(df.format(execution.getDate()));
 		writer.write(';');
-		writer.write(String.valueOf(execution.getDate().getTime()));
+		writer.write(String.valueOf(execution.getDate().toEpochMilli()));
 		writer.write(';');
 		writer.write(Optional.ofNullable(execution.getPreviousState()).map(VmStatus::name).orElse(""));
 		writer.write(';');

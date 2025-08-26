@@ -3,22 +3,14 @@
  */
 package org.ligoj.app.plugin.vm.model;
 
-import java.util.Date;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-
+import lombok.Getter;
+import lombok.Setter;
 import org.ligoj.app.model.Subscription;
 import org.ligoj.bootstrap.core.model.AbstractPersistable;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.time.Instant;
 
 /**
  * An executed (succeed or failed) VM operation.
@@ -33,8 +25,7 @@ public class VmExecution extends AbstractPersistable<Integer> {
 	 * Execution date
 	 */
 	@NotNull
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date date;
+	private Instant date;
 
 	/**
 	 * The executed VM operation. When <code>null</code> in detached mode, the execution is cancelled.

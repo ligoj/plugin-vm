@@ -42,9 +42,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -438,7 +438,7 @@ class VmExecutionResourceTest extends AbstractServerTest {
 		vmScheduleRepository.saveAndFlush(schedule);
 
 		final var execution = new VmExecution();
-		execution.setDate(new Date());
+		execution.setDate(Instant.now());
 		execution.setSubscription(entity);
 		execution.setTrigger("_system");
 		execution.setOperation(VmOperation.ON);
