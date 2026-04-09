@@ -79,7 +79,7 @@ define(function () {
 		initializeVmSnapshotsTable: function () {
 			current.snapshotTable && current.snapshotTable.fnDestroy();
 			current.snapshotTable = _('vm-snapshots').dataTable({
-				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-3"i><"col-xs-3"l><"col-xs-6"p>>',
 				serverSide: false,
 				searching: true,
 				destroy: true,
@@ -205,7 +205,7 @@ define(function () {
 		initializeSchedulesTable: function () {
 			current.table && current.table.fnDestroy();
 			current.table = _('vm-schedules').dataTable({
-				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-3"i><"col-xs-3"l><"col-xs-6"p>>',
 				data: current.model.configuration.schedules,
 				columns: [{
 					data: 'operation',
