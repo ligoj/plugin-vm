@@ -19,8 +19,7 @@
  *
  * Kept free of Vue SFC imports so it can be unit-tested without a DOM.
  */
-import { h } from 'vue'
-import { VBtn, VChip, VIcon, pluginRegistry, useI18nStore } from '@ligoj/host'
+import { renderServiceLink, renderDetailsChip, toolPluginId, delegateFeature, useI18nStore } from '@ligoj/host'
 
 /**
  * VM operations in legacy declaration order, each with its mdi icon.
@@ -45,40 +44,16 @@ export const VM_STATUS = {
 
 /**
  * Derive the sub-plugin id for a VM tool subscription. A VM node id is
- * `service:vm:<tool>[:<instance>]` — segment 3 is the tool, so
- * `service:vm:aws:i-1` → `vm-aws`. Mirrors the legacy `$super(...)`
- * inheritance where vm-<tool> plugins extended vm.js. Returns null when
- * there is no tool segment to delegate to.
+ * `service:vm:<tool>[:<instance>]` — `service:vm:aws:i-1` → `vm-aws`.
+ * Mirrors the legacy `$super(...)` inheritance where vm-<tool> plugins
+ * extended vm.js. Returns null when there is no tool segment to delegate
+ * to. The plumbing is the host's shared `toolPluginId` / `delegateFeature`
+ * (identical across every service parent), re-exported for existing callers.
  */
-export function subPluginIdFor(subscription) {
-  const id = subscription?.node?.id || ''
-  const parts = id.split(':').filter(Boolean)
-  if (parts.length < 3) return null
-  return `vm-${parts[2]}`
-}
+export const subPluginIdFor = toolPluginId
 
-/**
- * Calls `feature(action, subscription)` on the loaded vm-<tool>
- * sub-plugin and returns its VNodes (or an empty array). Degrades to
- * `[]` when nothing is registered, the plugin lacks the action, or the
- * call throws — a sub-plugin must never break the parent's rendering.
- */
-export function delegateToToolPlugin(subscription, action) {
-  const subId = subPluginIdFor(subscription)
-  if (!subId) return []
-  const plugin = pluginRegistry.get(subId)
-  if (typeof plugin?.feature !== 'function') return []
-  try {
-    const result = plugin.feature(action, subscription)
-    if (result == null) return []
-    return Array.isArray(result) ? result : [result]
-  } catch (err) {
-    if (!new RegExp(`no feature ["']${action}["']`).test(err?.message || '')) {
-      console.warn(`[plugin:vm] delegate to ${subId}.${action} threw`, err)
-    }
-    return []
-  }
-}
+/** Delegate `action` to the vm-<tool> sub-plugin; `[]` on any failure. */
+export const delegateToToolPlugin = (subscription, action) => delegateFeature(subscription, action, 'vm')
 
 const service = {
   VM_OPERATIONS,
@@ -100,18 +75,12 @@ const service = {
     const { t } = useI18nStore()
     const hasSchedule = !!subscription?.data?.schedules
     const buttons = [
-      h(
-        VBtn,
-        {
-          icon: true,
-          size: 'small',
-          variant: 'text',
-          color: hasSchedule ? 'error' : undefined,
-          title: hasSchedule ? t('vm.configurePresent') : t('vm.configure'),
-          to: `/vm/subscription/${subscription?.id}`,
-        },
-        () => h(VIcon, { size: 'small' }, () => 'mdi-cog'),
-      ),
+      renderServiceLink({
+        icon: 'mdi-cog',
+        color: hasSchedule ? 'error' : undefined,
+        title: hasSchedule ? t('vm.configurePresent') : t('vm.configure'),
+        to: `/vm/subscription/${subscription?.id}`,
+      }),
     ]
     buttons.push(...delegateToToolPlugin(subscription, 'renderFeatures'))
     return buttons
@@ -135,13 +104,7 @@ const service = {
       const parts = [label === `service:vm:${status}` ? status : label]
       if (vm.busy) parts.push(`(${t('service:vm:busy')})`)
       if (status === 'powered_off' && vm.deployed) parts.push(`[${t('service:vm:deployed')}]`)
-      out.push(
-        h(
-          VChip,
-          { size: 'small', variant: 'tonal', color: meta.color, class: 'mr-1', title: parts.join(' ') },
-          () => [h(VIcon, { start: true, size: 'small' }, () => meta.icon), parts.join(' ')],
-        ),
-      )
+      out.push(renderDetailsChip({ icon: meta.icon, text: parts.join(' '), title: parts.join(' '), color: meta.color }))
     }
     out.push(...delegateToToolPlugin(subscription, 'renderDetailsFeatures'))
     return out.length ? out : null
