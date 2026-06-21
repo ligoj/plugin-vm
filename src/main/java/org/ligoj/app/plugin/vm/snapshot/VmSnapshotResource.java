@@ -86,8 +86,11 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 			t.setStop(stop);
 		});
 		final var user = securityHelper.getLogin();
-		// The snapshot execution will be done into another thread
-		try (var executor = Executors.newSingleThreadExecutor()) {
+		// The snapshot execution will be done into another thread.
+		// NOT try-with-resources: ExecutorService#close() (Java 19+) awaits task termination, which would hold this
+		// request open for the whole snapshot duration (504 upstream) instead of answering with the just-started task.
+		final var executor = Executors.newSingleThreadExecutor();
+		try {
 			executor.submit(() -> {
 				Thread.sleep(50);
 				securityHelper.setUserName(user);
@@ -95,6 +98,9 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 				log.info("Snapshot requested for subscription {} finished", subscription);
 				return null;
 			});
+		} finally {
+			// Orderly shutdown: the submitted snapshot still runs to completion, no new task is accepted.
+			executor.shutdown();
 		}
 		return task;
 	}
@@ -124,8 +130,10 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 			t.setStop(false);
 		});
 		final var user = securityHelper.getLogin();
-		// The snapshot execution will be done into another thread
-		try (var executor = Executors.newSingleThreadExecutor()) {
+		// The snapshot execution will be done into another thread.
+		// NOT try-with-resources: ExecutorService#close() (Java 19+) awaits task termination — see #create.
+		final var executor = Executors.newSingleThreadExecutor();
+		try {
 			executor.submit(() -> {
 				Thread.sleep(50);
 				securityHelper.setUserName(user);
@@ -133,6 +141,9 @@ public class VmSnapshotResource implements LongTaskRunnerSubscription<VmSnapshot
 				log.info("Snapshot deletion requested for subscription {}, snapshot {} finished", subscription, snapshot);
 				return null;
 			});
+		} finally {
+			// Orderly shutdown: the submitted deletion still runs to completion, no new task is accepted.
+			executor.shutdown();
 		}
 		return task;
 	}

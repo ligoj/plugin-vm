@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>plugin-vm · standalone dev</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 1rem; }
+      pre { background: #f7f7f9; padding: 0.75rem; border-radius: 4px; overflow: auto; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import plugin from './src/index.js'
+      const root = document.getElementById('app')
+      root.innerHTML = `
+        <h2>Plugin "${plugin.id}" — ${plugin.label}</h2>
+        <p>This bundle plugs into the host. Inspect the registered surface below.</p>
+        <pre>${JSON.stringify({ id: plugin.id, label: plugin.label, meta: plugin.meta, routes: (plugin.routes || []).map(r => r.path), features: Object.keys(plugin.service || {}) }, null, 2)}</pre>
+      `
+    </script>
+  </body>
+</html>
