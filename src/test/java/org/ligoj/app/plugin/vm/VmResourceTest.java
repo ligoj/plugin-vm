@@ -3,13 +3,7 @@
  */
 package org.ligoj.app.plugin.vm;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.util.ArrayList;
-
 import jakarta.transaction.Transactional;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +22,6 @@ import org.ligoj.app.plugin.vm.model.VmSchedule;
 import org.ligoj.app.plugin.vm.schedule.VmScheduleResource;
 import org.ligoj.app.plugin.vm.snapshot.Snapshotting;
 import org.ligoj.app.resource.ServicePluginLocator;
-import org.mockito.Mockito;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +29,14 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.util.ArrayList;
+
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test class of {@link VmResource}
@@ -119,7 +120,7 @@ class VmResourceTest extends AbstractServerTest {
 	void getConfiguration() throws ParseException {
 		final var resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.locator = Mockito.mock(ServicePluginLocator.class);
+		resource.locator = mock(ServicePluginLocator.class);
 
 		final var configuration = resource.getConfiguration(subscription);
 		final var schedules = configuration.getSchedules();
@@ -139,8 +140,8 @@ class VmResourceTest extends AbstractServerTest {
 	void getConfigurationSupportSnapshot() throws ParseException {
 		final var resource = new VmResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		Mockito.doReturn(Mockito.mock(Snapshotting.class)).when(resource.locator).getResource("service:vm:test:test",
+		resource.locator = mock(ServicePluginLocator.class);
+		doReturn(mock(Snapshotting.class)).when(resource.locator).getResource("service:vm:test:test",
 				Snapshotting.class);
 
 		Assertions.assertTrue(resource.getConfiguration(subscription).isSupportSnapshot());

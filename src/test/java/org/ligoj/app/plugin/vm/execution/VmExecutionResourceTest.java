@@ -49,6 +49,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * Test class of {@link VmExecutionResource}
  */
@@ -96,16 +99,16 @@ class VmExecutionResourceTest extends AbstractServerTest {
 	}
 
 	private void mockContext() {
-		mockLocator = Mockito.mock(ServicePluginLocator.class);
-		mockVmTool = Mockito.mock(VmExecutionServicePlugin.class);
-		Mockito.when(mockLocator.getResource(ArgumentMatchers.anyString())).then(invocation -> {
+		mockLocator = mock(ServicePluginLocator.class);
+		mockVmTool = mock(VmExecutionServicePlugin.class);
+		when(mockLocator.getResource(ArgumentMatchers.anyString())).then(invocation -> {
 			final var resource = (String) invocation.getArguments()[0];
 			if (resource.equals("service:vm:test:test")) {
 				return mockVmTool;
 			}
 			return VmExecutionResourceTest.this.locator.getResource(resource);
 		});
-		Mockito.when(mockLocator.getResourceExpected(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
+		when(mockLocator.getResourceExpected(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
 				.then(invocation -> {
 					final var resource = (String) invocation.getArguments()[0];
 					if (resource.equals("service:vm:test:test")) {
@@ -114,10 +117,10 @@ class VmExecutionResourceTest extends AbstractServerTest {
 					return VmExecutionResourceTest.this.locator.getResourceExpected(resource,
 							(Class<?>) invocation.getArguments()[1]);
 				});
-		final var applicationContext = Mockito.mock(ApplicationContext.class);
+		final var applicationContext = mock(ApplicationContext.class);
 		SpringUtils.setSharedApplicationContext(applicationContext);
-		Mockito.when(applicationContext.getBean(ServicePluginLocator.class)).thenReturn(mockLocator);
-		Mockito.when(applicationContext.getBean(SecurityHelper.class)).thenReturn(securityHelper);
+		when(applicationContext.getBean(ServicePluginLocator.class)).thenReturn(mockLocator);
+		when(applicationContext.getBean(SecurityHelper.class)).thenReturn(securityHelper);
 	}
 
 	@AfterEach

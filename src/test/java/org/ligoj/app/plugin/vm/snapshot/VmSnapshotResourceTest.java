@@ -3,14 +3,7 @@
  */
 package org.ligoj.app.plugin.vm.snapshot;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
 import jakarta.transaction.Transactional;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,11 +22,18 @@ import org.ligoj.app.plugin.vm.model.VmSnapshotStatus;
 import org.ligoj.app.resource.ServicePluginLocator;
 import org.ligoj.bootstrap.core.resource.BusinessException;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import static org.mockito.Mockito.*;
 
 /**
  * Test class of {@link VmSnapshotResource}
@@ -65,7 +65,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 				StandardCharsets.UTF_8);
 
 		subscription = getSubscription("Jupiter");
-		service = Mockito.mock(Snapshotting.class);
+		service = mock(Snapshotting.class);
 		status = new VmSnapshotStatus();
 		resource = new VmSnapshotResource() {
 			@Override
@@ -74,8 +74,8 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 			}
 		};
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		Mockito.doReturn(service).when(resource.locator).getResource("service:vm:test:test", Snapshotting.class);
+		resource.locator = mock(ServicePluginLocator.class);
+		doReturn(service).when(resource.locator).getResource("service:vm:test:test", Snapshotting.class);
 	}
 
 	@Test
@@ -102,7 +102,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 
 	@Test
 	void createNotSupported() {
-		resource.locator = Mockito.mock(ServicePluginLocator.class);
+		resource.locator = mock(ServicePluginLocator.class);
 		Assertions.assertEquals("snapshot-no-supported", Assertions.assertThrows(BusinessException.class, () -> resource.create(subscription, true)).getMessage());
 	}
 
@@ -110,7 +110,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	void create() throws Exception {
 		status = resource.create(subscription, true);
 		Thread.sleep(200);
-		Mockito.verify(service).snapshot(ArgumentMatchers.any(VmSnapshotStatus.class));
+		verify(service).snapshot(ArgumentMatchers.any(VmSnapshotStatus.class));
 		Assertions.assertFalse(status.isFinishedRemote());
 		Assertions.assertTrue(status.isStop());
 		Assertions.assertEquals(getAuthenticationName(), status.getAuthor());
@@ -130,7 +130,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	void delete() throws Exception {
 		status = resource.delete(subscription, "snapshot-id");
 		Thread.sleep(200);
-		Mockito.verify(service).delete(ArgumentMatchers.any(VmSnapshotStatus.class));
+		verify(service).delete(ArgumentMatchers.any(VmSnapshotStatus.class));
 		Assertions.assertFalse(status.isFinishedRemote());
 		Assertions.assertFalse(status.isStop());
 		Assertions.assertEquals(getAuthenticationName(), status.getAuthor());
@@ -163,7 +163,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 		volumeSnapshot.setSize(10);
 		volumeSnapshot.setName("/dev");
 		snapshot.setVolumes(Collections.singletonList(volumeSnapshot));
-		Mockito.doReturn(Collections.singletonList(snapshot)).when(service).findAllSnapshots(subscription, "criteria");
+		doReturn(Collections.singletonList(snapshot)).when(service).findAllSnapshots(subscription, "criteria");
 
 		final var list = resource.findAll(subscription, "criteria");
 		Assertions.assertEquals(1, list.size());
@@ -199,7 +199,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 		mockProxy();
 
 		final var task = resource.getTask(subscription);
-		Mockito.verify(service).completeStatus(ArgumentMatchers.any(VmSnapshotStatus.class));
+		verify(service).completeStatus(ArgumentMatchers.any(VmSnapshotStatus.class));
 		Assertions.assertEquals("junit", task.getAuthor());
 		Assertions.assertEquals(SnapshotOperation.CREATE, task.getOperation());
 	}
@@ -208,7 +208,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	void getTaskNull() {
 		mockProxy();
 		final var task = resource.getTask(subscription);
-		Mockito.verify(service, Mockito.never()).completeStatus(ArgumentMatchers.any(VmSnapshotStatus.class));
+		verify(service, never()).completeStatus(ArgumentMatchers.any(VmSnapshotStatus.class));
 		Assertions.assertNull(task);
 	}
 
@@ -232,7 +232,7 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 		final var task = new VmSnapshotStatus();
 		task.setLocked(subscriptionRepository.findOneExpected(subscription));
 		Assertions.assertFalse(resource.isFinished(task));
-		Mockito.verify(service).completeStatus(task);
+		verify(service).completeStatus(task);
 	}
 
 	/**
@@ -241,8 +241,8 @@ class VmSnapshotResourceTest extends AbstractServerTest {
 	private void mockProxy() {
 		resource = new VmSnapshotResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.locator = Mockito.mock(ServicePluginLocator.class);
-		Mockito.doReturn(service).when(resource.locator).getResource("service:vm:test:test", Snapshotting.class);
+		resource.locator = mock(ServicePluginLocator.class);
+		doReturn(service).when(resource.locator).getResource("service:vm:test:test", Snapshotting.class);
 	}
 
 	/**
