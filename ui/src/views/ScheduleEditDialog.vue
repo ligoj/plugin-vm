@@ -19,7 +19,7 @@
             </template>
           </v-select>
 
-          <v-text-field
+          <LigojTextField
             v-model="form.cron"
             :label="t('service:vm:cron')"
             :rules="REQUIRED_RULES"
@@ -57,7 +57,7 @@
  * POSTs/PUTs the emitted payload to `service/vm/:sub/schedule`.
  */
 import { ref, reactive, computed, watch } from 'vue'
-import { useI18nStore } from '@ligoj/host'
+import { LigojTextField, useI18nStore } from '@ligoj/host'
 import { VM_OPERATIONS } from '../service.js'
 
 const props = defineProps({
