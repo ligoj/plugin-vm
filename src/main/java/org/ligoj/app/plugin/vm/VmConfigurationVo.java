@@ -23,8 +23,7 @@ public class VmConfigurationVo {
 	/**
 	 * Optional schedules for this VM
 	 */
-	@Valid
-	private List<VmScheduleVo> schedules = new ArrayList<>();
+	private List<@Valid VmScheduleVo> schedules = new ArrayList<>();
 
 	/**
 	 * When <code>true</code> the related tool supports snapshot.
