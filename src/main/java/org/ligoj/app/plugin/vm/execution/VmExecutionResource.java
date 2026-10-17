@@ -272,7 +272,7 @@ public class VmExecutionResource implements LongTaskRunnerSubscription<VmExecuti
 				writer.write(';');
 				writer.write(String.valueOf(next.getTime()));
 			} catch (final ParseException pe) {
-				// Non blocking error
+				// Non-blocking error
 				log.error("Invalid CRON expression {} : {}", schedule.getCron(), pe.getMessage());
 				writer.write(";ERROR;ERROR");
 			}
