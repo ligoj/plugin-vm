@@ -49,8 +49,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Test class of {@link VmScheduleResource}
